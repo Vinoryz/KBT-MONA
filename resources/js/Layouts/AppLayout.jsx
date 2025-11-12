@@ -1,6 +1,7 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import FloatingChatbot from '@/Components/FloatingChatbot';
+import NotificationBell from '@/Components/NotificationBell';
 
 export default function AppLayout({ children, title, auth, navigation }) {
     const { url } = usePage();
@@ -68,6 +69,11 @@ export default function AppLayout({ children, title, auth, navigation }) {
                                     ))}
                                 </div>
                                 
+                                {/* Desktop Notification Bell */}
+                                <div className="hidden min-[1024px]:block">
+                                    <NotificationBell />
+                                </div>
+                                
                                 {/* Mobile Menu Button */}
                                 <button
                                     onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -131,6 +137,14 @@ export default function AppLayout({ children, title, auth, navigation }) {
                                         <div className="text-sm max-[425px]:text-xs text-gray-500">View Profile</div>
                                     </div>
                                 </Link>
+
+                                {/* Mobile Notification Bell - show at top of menu */}
+                                <div className="pb-2 mb-2 border-b border-gray-100">
+                                    <div className="flex items-center justify-between py-2 px-4 max-[425px]:px-3">
+                                        <span className="text-base font-medium text-gray-700">Notifications</span>
+                                        <NotificationBell />
+                                    </div>
+                                </div>
 
                                 {/* Navigation Items */}
                                 {navItems.map((item) => (

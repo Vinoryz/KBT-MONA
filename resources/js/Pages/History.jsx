@@ -246,6 +246,8 @@ export default function History({ auth, categories = [] }) {
 
             if (response.data.status === "success") {
                 showMessage("success", "Transaction deleted successfully!");
+                // Dispatch event for notification bell to refresh
+                window.dispatchEvent(new CustomEvent('transaction-deleted'));
                 // Refresh the transactions list
                 fetchTransactions(1);
             }

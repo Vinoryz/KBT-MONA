@@ -347,6 +347,9 @@ export default function Transaction({ auth }) {
                 }, 1500); // Delay to show after success message
             }
 
+            // Dispatch event for notification bell to refresh
+            window.dispatchEvent(new CustomEvent('transaction-created'));
+
             // Reset form
             setFormData({
                 amount: "",
@@ -467,6 +470,10 @@ export default function Transaction({ auth }) {
                 "Success",
                 "Transaction deleted successfully!"
             );
+            
+            // Dispatch event for notification bell to refresh
+            window.dispatchEvent(new CustomEvent('transaction-deleted'));
+            
             fetchMonthlyStats();
         } catch (error) {
             console.error("Error deleting transaction:", error);

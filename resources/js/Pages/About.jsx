@@ -231,39 +231,6 @@ export default function About({ auth }) {
                     </div>
                 </section>
 
-                {/* Why Choose MONA */}
-                <section className="py-20 max-[768px]:py-16 max-[425px]:py-12 bg-[#058743] text-white">
-                    <div className="max-w-[1500px] mx-auto px-6 max-[425px]:px-4">
-                        <div className="text-center mb-16 max-[425px]:mb-12">
-                            <h2 className="animate-fade-in-up text-3xl md:text-4xl max-[425px]:text-2xl font-bold mb-4 max-[425px]:mb-3">
-                                Why Choose MONA?
-                            </h2>
-                            <p className="animate-fade-in-up delay-100 text-lg max-[425px]:text-base max-w-2xl mx-auto opacity-90">
-                                Join thousands of users who have transformed their financial lives with MONA.
-                            </p>
-                        </div>
-
-                        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-[768px]:gap-6 max-[425px]:gap-4">
-                            <div className="text-center animate-fade-in-up delay-200">
-                                <div className="text-3xl max-[425px]:text-2xl font-bold mb-2">100%</div>
-                                <p className="text-sm max-[425px]:text-xs opacity-90">Free to Use</p>
-                            </div>
-                            <div className="text-center animate-fade-in-up delay-300">
-                                <div className="text-3xl max-[425px]:text-2xl font-bold mb-2">10K+</div>
-                                <p className="text-sm max-[425px]:text-xs opacity-90">Active Users</p>
-                            </div>
-                            <div className="text-center animate-fade-in-up delay-400">
-                                <div className="text-3xl max-[425px]:text-2xl font-bold mb-2">99.9%</div>
-                                <p className="text-sm max-[425px]:text-xs opacity-90">Uptime</p>
-                            </div>
-                            <div className="text-center animate-fade-in-up delay-500">
-                                <div className="text-3xl max-[425px]:text-2xl font-bold mb-2">24/7</div>
-                                <p className="text-sm max-[425px]:text-xs opacity-90">Support</p>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
                 {/* Footer */}
                 <footer className="border-t border-[#E0E0E0] bg-white">
                     <div className="max-w-[1500px] mx-auto px-6 max-[425px]:px-4 py-4 text-center">
