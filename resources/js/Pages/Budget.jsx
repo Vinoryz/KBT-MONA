@@ -408,6 +408,8 @@ export default function Budget() {
                 onSuccess: () => {
                     setModalOpen(false);
                     reset();
+                    // Dispatch event for notification bell to refresh
+                    window.dispatchEvent(new CustomEvent('budget-updated'));
                 },
                 preserveScroll: true,
             });
@@ -416,6 +418,8 @@ export default function Budget() {
                 onSuccess: () => {
                     setModalOpen(false);
                     reset();
+                    // Dispatch event for notification bell to refresh
+                    window.dispatchEvent(new CustomEvent('budget-created'));
                 },
                 preserveScroll: true,
             });
@@ -425,6 +429,10 @@ export default function Budget() {
     function remove(id) {
         if (!confirm("Delete this budget?")) return;
         destroy(route("budgets.destroy", id), {
+            onSuccess: () => {
+                // Dispatch event for notification bell to refresh
+                window.dispatchEvent(new CustomEvent('budget-deleted'));
+            },
             preserveScroll: true,
         });
     }

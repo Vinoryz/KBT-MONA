@@ -613,6 +613,9 @@ export default function ScanReceipt({ auth }) {
                     }, 2000);
                 }
 
+                // Dispatch event for notification bell to refresh
+                window.dispatchEvent(new CustomEvent('transaction-created'));
+
                 // Reset form and clear selected file
                 setFormData({
                     amount: "",

@@ -6,6 +6,7 @@ use App\Http\Controllers\OcrController;
 use App\Http\Controllers\DocumentAIController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\RagEngineController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
@@ -155,6 +156,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/api/dashboard/financial-overview', [\App\Http\Controllers\DashboardController::class, 'financialOverview']);
     Route::get('/api/dashboard/expense-categories', [\App\Http\Controllers\DashboardController::class, 'expenseCategories']);
     Route::get('/api/dashboard/complete', [\App\Http\Controllers\DashboardController::class, 'completeData']);
+    
+    // Notification routes
+    Route::get('/api/notifications', [NotificationController::class, 'index']);
 });
 
 Route::get('/financial-advisor', function (Request $request) {
