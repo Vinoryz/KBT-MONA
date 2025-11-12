@@ -62,7 +62,7 @@ class ProfileController extends Controller
 
         $user->update($validated);
 
-        return Redirect::route('profile.show')->with('status','profile-updated');
+        return back()->with('status','profile-updated');
     }
 
     public function removePhoto(Request $request)

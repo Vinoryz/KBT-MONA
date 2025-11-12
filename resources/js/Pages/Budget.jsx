@@ -218,6 +218,15 @@ export default function Budget() {
     const [toastMessage, setToastMessage] = useState("");
     const [toastType, setToastType] = useState("success");
     const [isAlertsExpanded, setIsAlertsExpanded] = useState(false); // State for alerts dropdown - default closed
+    
+    // Delete confirmation modal state
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [budgetToDelete, setBudgetToDelete] = useState(null);
+    
+    // Success modal state
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [successMessage, setSuccessMessage] = useState("");
+    const [successTitle, setSuccessTitle] = useState("");
 
     // Debug - log everything we receive
     useEffect(() => {
@@ -410,6 +419,11 @@ export default function Budget() {
                     reset();
                     // Dispatch event for notification bell to refresh
                     window.dispatchEvent(new CustomEvent('budget-updated'));
+                    // Show success modal
+                    setSuccessTitle("Budget Updated!");
+                    setSuccessMessage("Your budget has been updated successfully.");
+                    setShowSuccessModal(true);
+                    setTimeout(() => setShowSuccessModal(false), 2000);
                 },
                 preserveScroll: true,
             });
@@ -420,21 +434,48 @@ export default function Budget() {
                     reset();
                     // Dispatch event for notification bell to refresh
                     window.dispatchEvent(new CustomEvent('budget-created'));
+                    // Show success modal
+                    setSuccessTitle("Budget Created!");
+                    setSuccessMessage("Your new budget has been created successfully.");
+                    setShowSuccessModal(true);
+                    setTimeout(() => setShowSuccessModal(false), 2000);
                 },
                 preserveScroll: true,
             });
         }
     }
 
-    function remove(id) {
-        if (!confirm("Delete this budget?")) return;
-        destroy(route("budgets.destroy", id), {
+    function handleDeleteClick(id) {
+        setBudgetToDelete(id);
+        setShowDeleteModal(true);
+    }
+
+    function confirmDelete() {
+        if (!budgetToDelete) return;
+        
+        destroy(route("budgets.destroy", budgetToDelete), {
             onSuccess: () => {
+                setShowDeleteModal(false);
+                setBudgetToDelete(null);
                 // Dispatch event for notification bell to refresh
                 window.dispatchEvent(new CustomEvent('budget-deleted'));
+                // Show success modal
+                setSuccessTitle("Budget Deleted!");
+                setSuccessMessage("Your budget has been deleted successfully.");
+                setShowSuccessModal(true);
+                setTimeout(() => setShowSuccessModal(false), 2000);
             },
             preserveScroll: true,
         });
+    }
+
+    function cancelDelete() {
+        setShowDeleteModal(false);
+        setBudgetToDelete(null);
+    }
+
+    function remove(id) {
+        handleDeleteClick(id);
     }
 
     return (
@@ -1206,6 +1247,82 @@ export default function Budget() {
                     )}
                 </div>
             </div>
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-modalFadeIn">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full transform transition-all animate-modalSlideUp">
+                        <div className="p-6">
+                            <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4 animate-scaleIn">
+                                <svg
+                                    className="w-6 h-6 text-red-600"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                    />
+                                </svg>
+                            </div>
+                            <h3 className="text-xl font-semibold text-gray-900 text-center mb-2">
+                                Delete Budget
+                            </h3>
+                            <p className="text-gray-600 text-center mb-6">
+                                Are you sure you want to delete this budget? This action cannot be undone.
+                            </p>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={cancelDelete}
+                                    className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmDelete}
+                                    className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition-colors duration-200"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Success Modal */}
+            {showSuccessModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-modalFadeIn">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full transform transition-all animate-modalSlideUp">
+                        <div className="p-8 text-center">
+                            <div className="flex items-center justify-center w-16 h-16 mx-auto bg-[#058743] rounded-full mb-4 animate-scaleIn">
+                                <svg
+                                    className="w-8 h-8 text-white animate-checkmark"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={3}
+                                        d="M5 13l4 4L19 7"
+                                    />
+                                </svg>
+                            </div>
+                            <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                                {successTitle}
+                            </h3>
+                            <p className="text-gray-600">
+                                {successMessage}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
         </AppLayout>
     );
 }

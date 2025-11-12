@@ -5,7 +5,8 @@ import InputError from "@/Components/InputError";
 import InputLabel from "@/Components/InputLabel";
 import PrimaryButton from "@/Components/PrimaryButton";
 import TextInput from "@/Components/TextInput";
-import DateInput from "@/Components/DateInput";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { Transition } from "@headlessui/react";
 import AppLayout from "@/Layouts/AppLayout";
 import ReactCrop from "react-image-crop";
@@ -45,6 +46,11 @@ export default function Edit({ mustVerifyEmail, status }) {
     });
     // State untuk 'profile', 'password', atau 'removePhoto'
     const [actionToConfirm, setActionToConfirm] = useState(null);
+    
+    // Success modal state
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [successMessage, setSuccessMessage] = useState("");
+    const [successTitle, setSuccessTitle] = useState("");
 
     // Parse date_of_birth from user data
     const parseDateOfBirth = (dateString) => {
@@ -125,7 +131,15 @@ export default function Edit({ mustVerifyEmail, status }) {
             forceFormData: true,
             preserveScroll: true,
             onSuccess: () => {
-                window.location.href = route("profile.show");
+                // Show success modal
+                setSuccessTitle("Profile Updated!");
+                setSuccessMessage("Your profile has been successfully updated.");
+                setShowSuccessModal(true);
+                
+                // Auto-dismiss after 2 seconds (stay on edit page)
+                setTimeout(() => {
+                    setShowSuccessModal(false);
+                }, 2000);
             },
             onError: (errors) => {
                 console.log("Form errors:", errors);
@@ -192,7 +206,18 @@ export default function Edit({ mustVerifyEmail, status }) {
     const handleActualPasswordSave = () => {
         putPassword(route('password.update'), {
             preserveScroll: true,
-            onSuccess: () => resetPassword(),
+            onSuccess: () => {
+                resetPassword();
+                // Show success modal
+                setSuccessTitle("Password Updated!");
+                setSuccessMessage("Your password has been successfully changed.");
+                setShowSuccessModal(true);
+                
+                // Auto-dismiss after 2 seconds
+                setTimeout(() => {
+                    setShowSuccessModal(false);
+                }, 2000);
+            },
         });
     };
 
@@ -543,19 +568,49 @@ export default function Edit({ mustVerifyEmail, status }) {
                                         htmlFor="date_of_birth"
                                         value="Date of Birth"
                                     />
-                                    <DateInput
-                                        id="date_of_birth"
-                                        selected={selectedDate}
-                                        onChange={handleDateChange}
-                                        placeholderText="Select your date of birth"
-                                        className="mt-1 block w-full"
-                                        maxDate={new Date()}
-                                        showYearDropdown
-                                        showMonthDropdown
-                                        dropdownMode="select"
-                                        yearDropdownItemNumber={100}
-                                        scrollableYearDropdown
-                                    />
+                                    <div className="relative mt-1">
+                                        <DatePicker
+                                            selected={selectedDate}
+                                            onChange={handleDateChange}
+                                            dateFormat="dd/MM/yyyy"
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg cursor-pointer focus:ring-2 focus:ring-[#058743] focus:border-transparent"
+                                            calendarClassName="custom-calendar"
+                                            wrapperClassName="w-full"
+                                            placeholderText="DD/MM/YYYY"
+                                            showPopperArrow={false}
+                                            maxDate={new Date()}
+                                            showYearDropdown
+                                            showMonthDropdown
+                                            dropdownMode="select"
+                                            yearDropdownItemNumber={100}
+                                            scrollableYearDropdown
+                                            onKeyDown={(e) => {
+                                                // Prevent all keyboard input except Tab for accessibility
+                                                if (e.key !== "Tab") {
+                                                    e.preventDefault();
+                                                }
+                                            }}
+                                            onChangeRaw={(e) =>
+                                                e.preventDefault()
+                                            }
+                                        />
+                                        {/* Calendar Icon */}
+                                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                            <svg
+                                                className="w-5 h-5 text-gray-400"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                                />
+                                            </svg>
+                                        </div>
+                                    </div>
                                     <InputError
                                         className="mt-2"
                                         message={profileErrors.date_of_birth}
@@ -843,52 +898,224 @@ export default function Edit({ mustVerifyEmail, status }) {
 
             {/*Konfirmasi */}
             {isConfirmModalOpen && (
-                <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black bg-opacity-50" onClick={handleModalClose} />
-                    
-                    {/* Konten Modal */}
-                    <div className="relative bg-white rounded-2xl p-6 md:p-8 w-full max-w-md shadow-xl transform transition-all">
-                        <div className="sm:flex sm:items-start">
-                            <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                                <ExclamationTriangleIcon className="h-6 w-6 text-red-600" aria-hidden="true" />
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-modalFadeIn">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full transform transition-all animate-modalSlideUp">
+                        <div className="p-6">
+                            <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4 animate-scaleIn">
+                                <ExclamationTriangleIcon className="w-6 h-6 text-red-600" aria-hidden="true" />
                             </div>
-
-                            <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                                <h3 className="text-lg md:text-xl font-semibold text-gray-900 leading-6">
-                                    {modalContent.title}
-                                </h3>
-                                <div className="mt-2">
-                                    <p className="text-sm text-gray-600">
-                                        {modalContent.message}
-                                    </p>
-                                </div>
+                            <h3 className="text-xl font-semibold text-gray-900 text-center mb-2">
+                                {modalContent.title}
+                            </h3>
+                            <p className="text-gray-600 text-center mb-6">
+                                {modalContent.message}
+                            </p>
+                            <div className="flex gap-3">
+                                <button
+                                    type="button"
+                                    onClick={handleModalClose}
+                                    className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleModalConfirm}
+                                    disabled={profileProcessing || passwordProcessing}
+                                    className={`flex-1 px-4 py-2.5 text-white rounded-xl font-medium transition-colors duration-200 disabled:opacity-50 ${
+                                        modalContent.confirmColor === 'bg-growth-green-500 hover:bg-growth-green-600' 
+                                            ? 'bg-[#058743] hover:bg-[#047236]' 
+                                            : 'bg-red-600 hover:bg-red-700'
+                                    }`}
+                                >
+                                    {modalContent.confirmText}
+                                </button>
                             </div>
-                        </div>
-                        
-                        {/* Tombol Modal  */}
-                        <div className="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">
-                            <button
-                                type="button"
-                                // Tombol konfirmasi
-                                className={`inline-flex w-full justify-center rounded-lg px-4 py-2 text-base font-medium text-white shadow-sm transition-colors sm:col-start-2 sm:text-sm ${modalContent.confirmColor} disabled:opacity-50`}
-                                onClick={handleModalConfirm}
-                                // Disable tombol jika ada form yang sedang diproses
-                                disabled={profileProcessing || passwordProcessing}
-                            >
-                                {modalContent.confirmText}
-                            </button>
-                            <button
-                                type="button"
-                                // Tombol cancel
-                                className="mt-3 inline-flex w-full justify-center rounded-lg bg-gray-200 px-4 py-2 text-base font-medium text-gray-800 shadow-sm hover:bg-gray-300 transition-colors sm:col-start-1 sm:mt-0 sm:text-sm"
-                                onClick={handleModalClose}
-                            >
-                                Cancel
-                            </button>
                         </div>
                     </div>
                 </div>
             )}
+
+            {/* Success Modal */}
+            {showSuccessModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-modalFadeIn">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full transform transition-all animate-modalSlideUp">
+                        <div className="p-8 text-center">
+                            <div className="flex items-center justify-center w-16 h-16 mx-auto bg-[#058743] rounded-full mb-4 animate-scaleIn">
+                                <svg
+                                    className="w-8 h-8 text-white animate-checkmark"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={3}
+                                        d="M5 13l4 4L19 7"
+                                    />
+                                </svg>
+                            </div>
+                            <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                                {successTitle}
+                            </h3>
+                            <p className="text-gray-600">
+                                {successMessage}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Custom DatePicker Styles */}
+            <style jsx>{`
+                /* Base DatePicker Styles */
+                .react-datepicker-popper {
+                    z-index: 9999 !important;
+                }
+
+                .react-datepicker {
+                    font-family: inherit !important;
+                    border: none !important;
+                    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
+                    border-radius: 16px !important;
+                    padding: 16px !important;
+                    background-color: white !important;
+                }
+
+                .react-datepicker__header {
+                    background-color: white !important;
+                    border-bottom: 1px solid #f0f0f0 !important;
+                    padding: 16px 0 !important;
+                    border-top-left-radius: 16px !important;
+                    border-top-right-radius: 16px !important;
+                }
+
+                .react-datepicker__current-month {
+                    font-size: 18px !important;
+                    font-weight: 700 !important;
+                    color: #1a1a1a !important;
+                    margin-bottom: 12px !important;
+                }
+
+                .react-datepicker__day-names {
+                    display: flex !important;
+                    justify-content: space-between !important;
+                    margin-top: 12px !important;
+                }
+
+                .react-datepicker__day-name {
+                    color: #666 !important;
+                    font-weight: 600 !important;
+                    font-size: 13px !important;
+                    width: 40px !important;
+                    line-height: 40px !important;
+                    margin: 0 !important;
+                }
+
+                .react-datepicker__month {
+                    margin: 0 !important;
+                    padding: 8px 0 !important;
+                }
+
+                .react-datepicker__week {
+                    display: flex !important;
+                    justify-content: space-between !important;
+                }
+
+                .react-datepicker__day {
+                    width: 40px !important;
+                    height: 40px !important;
+                    line-height: 40px !important;
+                    margin: 2px !important;
+                    border-radius: 8px !important;
+                    color: #1a1a1a !important;
+                    font-weight: 500 !important;
+                    transition: all 0.2s ease !important;
+                }
+
+                .react-datepicker__day:hover {
+                    background-color: #f5f5f5 !important;
+                    border-radius: 8px !important;
+                }
+
+                /* Selected date - Growth Green background with white text */
+                .react-datepicker__day--selected {
+                    background-color: #058743 !important;
+                    color: white !important;
+                    font-weight: 600 !important;
+                }
+
+                .react-datepicker__day--selected:hover {
+                    background-color: #046d36 !important;
+                }
+
+                /* Remove keyboard-selected state to avoid "half pressed" appearance */
+                .react-datepicker__day--keyboard-selected {
+                    background-color: transparent !important;
+                    color: inherit !important;
+                }
+
+                .react-datepicker__day--keyboard-selected:hover {
+                    background-color: #f5f5f5 !important;
+                }
+
+                /* Today's date - Growth Green color with light background */
+                .react-datepicker__day--today {
+                    font-weight: 600 !important;
+                    color: #058743 !important;
+                    background-color: #d4eadf !important;
+                }
+
+                .react-datepicker__day--today:hover {
+                    background-color: #c0e0cb !important;
+                }
+
+                /* Selected date overrides today styling - solid growth green */
+                .react-datepicker__day--selected.react-datepicker__day--today {
+                    background-color: #058743 !important;
+                    color: white !important;
+                    font-weight: 600 !important;
+                }
+
+                .react-datepicker__day--outside-month {
+                    color: #d0d0d0 !important;
+                }
+
+                .react-datepicker__navigation {
+                    top: 20px !important;
+                }
+
+                .react-datepicker__navigation-icon::before {
+                    border-color: #666 !important;
+                    border-width: 2px 2px 0 0 !important;
+                }
+
+                .react-datepicker__navigation:hover *::before {
+                    border-color: #058743 !important;
+                }
+
+                /* Mobile adjustments */
+                @media (max-width: 640px) {
+                    .react-datepicker {
+                        width: 100% !important;
+                        max-width: none !important;
+                        padding: 8px !important;
+                    }
+
+                    .react-datepicker__current-month {
+                        font-size: 13px !important;
+                    }
+
+                    .react-datepicker__day-name,
+                    .react-datepicker__day {
+                        width: 28px !important;
+                        height: 28px !important;
+                        line-height: 28px !important;
+                        font-size: 11px !important;
+                    }
+                }
+            `}</style>
 
         </AppLayout>
     );

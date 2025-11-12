@@ -302,20 +302,14 @@ export default function EditTransaction({ transaction, onClose, onUpdate }) {
             );
 
             console.log("Transaction updated:", response.data);
-            setNotification({
-                message: "Transaction successfully updated!",
-                type: "success",
-            });
-
-            // Call onUpdate callback to refresh the parent component
+            
+            // Close modal immediately
+            onClose();
+            
+            // Call onUpdate callback to refresh and show success modal
             if (onUpdate) {
                 onUpdate();
             }
-
-            // Close modal after a short delay to show success message
-            setTimeout(() => {
-                onClose();
-            }, 1500);
         } catch (err) {
             setNotification({
                 message: "Failed to update transaction.",
