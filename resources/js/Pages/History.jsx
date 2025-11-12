@@ -37,6 +37,11 @@ export default function History({ auth, categories = [] }) {
     // State for delete confirmation modal
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [transactionToDelete, setTransactionToDelete] = useState(null);
+    
+    // Success modal state
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [successMessage, setSuccessMessage] = useState("");
+    const [successTitle, setSuccessTitle] = useState("");
 
     // Get categories based on filter type
     const getAvailableCategories = () => {
@@ -245,7 +250,16 @@ export default function History({ auth, categories = [] }) {
             );
 
             if (response.data.status === "success") {
-                showMessage("success", "Transaction deleted successfully!");
+                // Show success modal
+                setSuccessTitle("Transaction Deleted!");
+                setSuccessMessage("The transaction has been successfully removed.");
+                setShowSuccessModal(true);
+                
+                // Auto-dismiss after 2 seconds
+                setTimeout(() => {
+                    setShowSuccessModal(false);
+                }, 2000);
+                
                 // Dispatch event for notification bell to refresh
                 window.dispatchEvent(new CustomEvent('transaction-deleted'));
                 // Refresh the transactions list
@@ -312,9 +326,18 @@ export default function History({ auth, categories = [] }) {
     };
 
     const handleEditUpdate = () => {
+        // Show success modal
+        setSuccessTitle("Transaction Updated!");
+        setSuccessMessage("Your transaction has been successfully updated.");
+        setShowSuccessModal(true);
+        
+        // Auto-dismiss after 2 seconds
+        setTimeout(() => {
+            setShowSuccessModal(false);
+        }, 2000);
+        
         // Refresh transactions after successful update
         fetchTransactions(1);
-        showMessage("success", "Transaction updated successfully!");
     };
 
     const totalTransactions = filteredTransactions.length;
@@ -382,19 +405,6 @@ export default function History({ auth, categories = [] }) {
                     <p className="text-xs sm:text-sm md:text-base lg:text-base xl:text-lg text-medium-gray">
                         View and manage all your transactions
                     </p>
-
-                    {/* Success/Error Message */}
-                    {message.text && (
-                        <div
-                            className={`mt-4 p-3 sm:p-4 rounded-lg text-sm sm:text-base ${
-                                message.type === "success"
-                                    ? "bg-green-50 text-green-800 border border-green-200"
-                                    : "bg-red-50 text-red-800 border border-red-200"
-                            }`}
-                        >
-                            {message.text}
-                        </div>
-                    )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
@@ -925,31 +935,75 @@ export default function History({ auth, categories = [] }) {
 
             {/* Delete Confirmation Modal */}
             {showDeleteModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
-                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 animate-fade-in">
-                        <div className="text-center">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                                Are you sure you want to delete this
-                                transaction?
-                            </h3>
-                            <p className="text-sm text-red-600 font-medium mb-6">
-                                THIS ACTION CANNOT BE UNDONE
-                            </p>
-
-                            <div className="flex gap-3 justify-center">
-                                <button
-                                    onClick={confirmDelete}
-                                    className="px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-modalFadeIn">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full transform transition-all animate-modalSlideUp">
+                        <div className="p-6">
+                            <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4 animate-scaleIn">
+                                <svg
+                                    className="w-6 h-6 text-red-600"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
                                 >
-                                    Yes, I'm Sure
-                                </button>
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                    />
+                                </svg>
+                            </div>
+                            <h3 className="text-xl font-semibold text-gray-900 text-center mb-2">
+                                Delete Transaction
+                            </h3>
+                            <p className="text-gray-600 text-center mb-6">
+                                Are you sure you want to delete this transaction? This action cannot be undone.
+                            </p>
+                            <div className="flex gap-3">
                                 <button
                                     onClick={cancelDelete}
-                                    className="px-6 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                                    className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200"
                                 >
                                     Cancel
                                 </button>
+                                <button
+                                    onClick={confirmDelete}
+                                    className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition-colors duration-200"
+                                >
+                                    Delete
+                                </button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Success Modal */}
+            {showSuccessModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-modalFadeIn">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full transform transition-all animate-modalSlideUp">
+                        <div className="p-8 text-center">
+                            <div className="flex items-center justify-center w-16 h-16 mx-auto bg-[#058743] rounded-full mb-4 animate-scaleIn">
+                                <svg
+                                    className="w-8 h-8 text-white animate-checkmark"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={3}
+                                        d="M5 13l4 4L19 7"
+                                    />
+                                </svg>
+                            </div>
+                            <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                                {successTitle}
+                            </h3>
+                            <p className="text-gray-600">
+                                {successMessage}
+                            </p>
                         </div>
                     </div>
                 </div>
