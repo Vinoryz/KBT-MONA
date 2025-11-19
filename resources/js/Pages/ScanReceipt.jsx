@@ -41,9 +41,6 @@ export default function ScanReceipt({ auth }) {
     const [editingItemIndex, setEditingItemIndex] = useState(null);
     const [editedItems, setEditedItems] = useState([]);
 
-    // Mobile detection state
-    const [isMobile, setIsMobile] = useState(false);
-
     // Camera modal state
     const [showCameraModal, setShowCameraModal] = useState(false);
     const [cameraStream, setCameraStream] = useState(null);
@@ -51,12 +48,8 @@ export default function ScanReceipt({ auth }) {
     const canvasRef = useRef(null);
 
     useEffect(() => {
-        const handleResize = () => {
-            setWindowWidth(window.innerWidth);
-            setIsMobile(window.innerWidth <= 640);
-        };
-
-        handleResize(); // Initial check
+        const handleResize = () => setWindowWidth(window.innerWidth);
+        handleResize();
         window.addEventListener("resize", handleResize);
         return () => window.removeEventListener("resize", handleResize);
     }, []);
@@ -154,21 +147,12 @@ export default function ScanReceipt({ auth }) {
             const img = new Image();
 
             img.onload = () => {
-                // Calculate new dimensions while maintaining aspect ratio
-                const ratio = Math.min(
-                    maxWidth / img.width,
-                    maxWidth / img.height
-                );
+                const ratio = Math.min(maxWidth / img.width, maxWidth / img.height);
                 canvas.width = img.width * ratio;
                 canvas.height = img.height * ratio;
-
-                // Draw and compress the image
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-                // Convert to compressed blob
                 canvas.toBlob(
                     (blob) => {
-                        // Create a new File object with the same name
                         const compressedFile = new File([blob], file.name, {
                             type: "image/jpeg",
                             lastModified: Date.now(),
@@ -179,178 +163,25 @@ export default function ScanReceipt({ auth }) {
                     quality
                 );
             };
-
             img.src = URL.createObjectURL(file);
         });
-    };
-
-    // Helper function to map OCR category to our API categories (multilingual)
-    const mapToValidCategory = (ocrCategory, description = "") => {
-        if (categories.length === 0) return null; // Return null if categories not loaded yet
-
-        // Combine category and description for better matching
-        const searchText = `${ocrCategory || ""} ${
-            description || ""
-        }`.toLowerCase();
-
-        // Find matching category by name
-        const findCategoryByKeywords = (keywords) => {
-            return categories.find((cat) =>
-                keywords.some(
-                    (keyword) =>
-                        cat.category_name.toLowerCase().includes(keyword) ||
-                        searchText.includes(keyword)
-                )
-            );
-        };
-
-        // Food & Beverages mapping (English + Indonesian)
-        const foodCategory = findCategoryByKeywords([
-            "food",
-            "beverage",
-            "restaurant",
-            "cafe",
-            "grocery",
-            "dining",
-            "makanan",
-            "minuman",
-            "restoran",
-            "warung",
-            "kafe",
-            "supermarket",
-            "pasar",
-            "indomaret",
-            "alfamart",
-            "hypermart",
-            "giant",
-            "carrefour",
-            "hero",
-            "lottemart",
-            "mcdonald",
-            "kfc",
-            "pizza",
-            "bakery",
-            "roti",
-            "bakso",
-            "gado",
-            "nasi",
-            "ayam",
-            "seafood",
-            "kedai",
-        ]);
-        if (foodCategory) return foodCategory.id;
-
-        // Shopping mapping (English + Indonesian + Electronics)
-        const shoppingCategory = findCategoryByKeywords([
-            "shop",
-            "retail",
-            "store",
-            "clothing",
-            "fashion",
-            "belanja",
-            "mall",
-            "butik",
-            "pakaian",
-            "sepatu",
-            "tas",
-            "elektronik",
-            "electronic",
-            "gadget",
-            "handphone",
-            "laptop",
-            "computer",
-            "hp",
-            "smartphone",
-            "tablet",
-            "accessories",
-            "aksesoris",
-        ]);
-        if (shoppingCategory) return shoppingCategory.id;
-
-        // Entertainment mapping (English + Indonesian)
-        const entertainmentCategory = findCategoryByKeywords([
-            "entertainment",
-            "movie",
-            "game",
-            "cinema",
-            "sports",
-            "hiburan",
-            "bioskop",
-            "film",
-            "olahraga",
-            "permainan",
-            "karaoke",
-            "wisata",
-            "cgv",
-            "xxi",
-            "cineplex",
-            "fitness",
-            "gym",
-            "spa",
-            "salon",
-        ]);
-        if (entertainmentCategory) return entertainmentCategory.id;
-
-        // Bills & Utilities mapping (English + Indonesian)
-        const billsCategory = findCategoryByKeywords([
-            "utility",
-            "electric",
-            "water",
-            "gas",
-            "internet",
-            "phone",
-            "bill",
-            "listrik",
-            "air",
-            "telepon",
-            "tagihan",
-            "pln",
-            "pdam",
-            "wifi",
-            "pulsa",
-            "telkom",
-            "indihome",
-        ]);
-        if (billsCategory) return billsCategory.id;
-
-        // Default to first category (usually "Other") if no match found
-        return categories.length > 0
-            ? categories[categories.length - 1].id
-            : null;
     };
 
     const handleFileChange = async (event) => {
         const file = event.target.files[0];
         if (!file) return;
 
-        // Check if image needs compression (>1MB or from camera)
-        const needsCompression = file.size > 1024 * 1024; // 1MB threshold
-
-        if (needsCompression) {
+        if (file.size > 1024 * 1024) {
             try {
-                console.log(
-                    `Compressing image: ${(file.size / 1024 / 1024).toFixed(
-                        2
-                    )}MB`
-                );
                 const compressedFile = await compressImage(file);
-                console.log(
-                    `Compressed to: ${(
-                        compressedFile.size /
-                        1024 /
-                        1024
-                    ).toFixed(2)}MB`
-                );
                 setSelectedFile(compressedFile);
             } catch (error) {
-                console.error("Compression failed, using original:", error);
                 setSelectedFile(file);
             }
         } else {
             setSelectedFile(file);
         }
 
-        // Reset results when new file is selected
         setOcrResults(null);
         setProcessingTime(null);
     };
@@ -362,30 +193,15 @@ export default function ScanReceipt({ auth }) {
         setOcrResults(null);
 
         try {
-            // Get CSRF token
-            const csrfToken = document
-                .querySelector('meta[name="csrf-token"]')
-                ?.getAttribute("content");
-
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
             if (!csrfToken) {
-                throw new Error(
-                    "CSRF token not found. Please refresh the page and try again."
-                );
+                throw new Error("CSRF token not found. Please refresh the page and try again.");
             }
 
-            console.log("Starting OCR process with file:", {
-                name: selectedFile.name,
-                size: selectedFile.size,
-                type: selectedFile.type,
-            });
-
             const startTime = Date.now();
-
-            // Create FormData to send the file to OCR endpoint
             const formData = new FormData();
             formData.append("image", selectedFile);
 
-            // Send to /process-receipt endpoint (Gemini AI)
             const response = await fetch("/process-receipt", {
                 method: "POST",
                 headers: {
@@ -397,41 +213,26 @@ export default function ScanReceipt({ auth }) {
                 credentials: "same-origin",
             });
 
-            const endTime = Date.now();
-            const processingTime = endTime - startTime;
-            setProcessingTime(processingTime);
-
-            // Get response
+            setProcessingTime(Date.now() - startTime);
             const responseText = await response.text();
-            console.log("Response status:", response.status);
-            console.log("Response body:", responseText);
 
             if (!response.ok) {
                 let errorMessage = "OCR processing failed";
                 try {
                     const errorData = JSON.parse(responseText);
-                    errorMessage =
-                        errorData.error || errorData.message || errorMessage;
+                    errorMessage = errorData.error || errorData.message || errorMessage;
                 } catch (e) {
                     errorMessage += ` (Status: ${response.status})`;
                 }
                 throw new Error(errorMessage);
             }
 
-            // Parse JSON response
             const ocrData = JSON.parse(responseText);
-
-            // Check if there's an error from the backend
             if (ocrData.error || !ocrData.success) {
                 throw new Error(ocrData.error || "Failed to process receipt");
             }
 
-            console.log("OCR Data received:", ocrData);
-
-            // Store the complete OCR results for display
             setOcrResults(ocrData);
-
-            // Populate formData for editing
             setFormData({
                 amount: ocrData.amount?.toString() || "",
                 category: ocrData.category_id || "",
@@ -439,17 +240,14 @@ export default function ScanReceipt({ auth }) {
                 description: ocrData.description || "Receipt transaction",
             });
 
-            // Show success message
             const itemCount = ocrData.items?.length || 0;
-            const successMsg =
+            showMessage(
+                "success",
                 itemCount > 0
-                    ? `Receipt scanned successfully! Found ${itemCount} item${
-                          itemCount > 1 ? "s" : ""
-                      }. Review and edit before adding.`
-                    : "Receipt scanned successfully! Review and edit before adding.";
-            showMessage("success", successMsg);
+                    ? `Receipt scanned successfully! Found ${itemCount} item${itemCount > 1 ? "s" : ""}. Review and edit before adding.`
+                    : "Receipt scanned successfully! Review and edit before adding."
+            );
         } catch (error) {
-            console.error("OCR error:", error);
             showMessage("error", error.message || "Failed to process receipt");
             setOcrResults(null);
         } finally {
@@ -459,93 +257,30 @@ export default function ScanReceipt({ auth }) {
 
     const handleInputChange = (field, value) => {
         if (field === "amount") {
-            // Handle amount formatting
             const rawValue = parseFormattedNumber(value);
-            setFormData((prev) => ({
-                ...prev,
-                [field]: rawValue,
-            }));
+            setFormData((prev) => ({ ...prev, [field]: rawValue }));
         } else {
-            setFormData((prev) => ({
-                ...prev,
-                [field]: value,
-            }));
+            setFormData((prev) => ({ ...prev, [field]: value }));
         }
-    };
-
-    // Helper function to format date as DD/MM/YYYY for display
-    const formatDateForDisplay = (dateString) => {
-        if (!dateString) return "";
-        const date = new Date(dateString);
-        if (isNaN(date.getTime())) return dateString;
-
-        const day = String(date.getDate()).padStart(2, "0");
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const year = date.getFullYear();
-
-        return `${day}/${month}/${year}`;
-    };
-
-    // Helper function to convert DD/MM/YYYY back to YYYY-MM-DD for input value
-    const parseDateFromDisplay = (displayDate) => {
-        if (!displayDate) return "";
-
-        // If it's already in YYYY-MM-DD format, return as is
-        if (displayDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
-            return displayDate;
-        }
-
-        // Parse DD/MM/YYYY format
-        const parts = displayDate.split("/");
-        if (parts.length === 3) {
-            const [day, month, year] = parts;
-            return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
-        }
-
-        return displayDate;
     };
 
     // Helper function to truncate filename with responsive length based on screen size
     const truncateFilename = (filename) => {
         if (!filename) return "";
 
-        // Dynamic max length based on current screen width
-        const getMaxLength = () => {
-            if (windowWidth >= 1536) return 50; // 2xl screens - show more
-            if (windowWidth >= 1280) return 40; // xl screens
-            if (windowWidth >= 1024) return 35; // lg screens
-            if (windowWidth >= 768) return 30; // md screens
-            if (windowWidth >= 640) return 25; // sm screens
-            return 20; // xs screens - very tight
-        };
-
-        const maxLength = getMaxLength();
-
+        const maxLength = windowWidth >= 1536 ? 50 : windowWidth >= 1280 ? 40 : windowWidth >= 1024 ? 35 : windowWidth >= 768 ? 30 : windowWidth >= 640 ? 25 : 20;
         if (filename.length <= maxLength) return filename;
 
-        // Find the last dot for extension
         const lastDotIndex = filename.lastIndexOf(".");
-        if (lastDotIndex === -1) {
-            // No extension, just truncate
-            return filename.substring(0, maxLength - 3) + "...";
-        }
+        if (lastDotIndex === -1) return filename.substring(0, maxLength - 3) + "...";
 
         const nameWithoutExt = filename.substring(0, lastDotIndex);
         const extension = filename.substring(lastDotIndex);
-
-        // Calculate available space for name (total - extension - ellipsis)
         const availableSpace = maxLength - extension.length - 3;
 
-        if (availableSpace <= 0) {
-            // Extension is too long, just show extension
-            return "..." + extension;
-        }
+        if (availableSpace <= 0) return "..." + extension;
+        if (nameWithoutExt.length <= availableSpace) return filename;
 
-        if (nameWithoutExt.length <= availableSpace) {
-            return filename; // No truncation needed
-        }
-
-        // Truncate name and add ellipsis before extension
         return nameWithoutExt.substring(0, availableSpace) + "..." + extension;
     };
 
@@ -634,8 +369,6 @@ export default function ScanReceipt({ auth }) {
                 if (cameraInput) cameraInput.value = "";
             }
         } catch (error) {
-            console.error("Error adding transaction:", error);
-
             if (error.response?.data?.errors) {
                 const errors = Object.values(error.response.data.errors).flat();
                 showMessage("error", errors.join(", "));
@@ -711,126 +444,79 @@ export default function ScanReceipt({ auth }) {
 
     // Open camera modal for desktop
     const openCameraModal = async () => {
-        console.log('[Camera] Opening camera modal...');
         try {
-            console.log('[Camera] Requesting camera access with optimized settings...');
             const stream = await navigator.mediaDevices.getUserMedia({ 
                 video: { 
-                    facingMode: 'environment', // Prefer back camera
-                    width: { ideal: 1280 },  // Reduced from 1920 for faster init
-                    height: { ideal: 720 }   // Reduced from 1080 for faster init
+                    facingMode: 'environment',
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
                 } 
             });
-            console.log('[Camera] Camera access granted, stream obtained');
             setCameraStream(stream);
             setShowCameraModal(true);
-            console.log('[Camera] Modal state set to true');
             
-            // Wait for modal to render, then set video source
             setTimeout(() => {
                 if (videoRef.current) {
-                    console.log('[Camera] Setting video source...');
                     videoRef.current.srcObject = stream;
-                    console.log('[Camera] Video source set, camera ready');
                 }
             }, 100);
         } catch (error) {
-            console.error('[Camera] Error accessing camera:', error);
             alert('Unable to access camera. Please check permissions or use file upload instead.');
         }
     };
 
     // Close camera modal and stop stream
     const closeCameraModal = () => {
-        console.log('[Camera] Close button clicked');
-        
-        // Stop all tracks immediately
         if (cameraStream) {
-            console.log('[Camera] Stopping camera tracks...');
-            cameraStream.getTracks().forEach(track => {
-                track.stop();
-            });
-            console.log('[Camera] All tracks stopped');
+            cameraStream.getTracks().forEach(track => track.stop());
         }
         
-        // Stop video element and clear source
         if (videoRef.current) {
-            console.log('[Camera] Clearing video element...');
             videoRef.current.srcObject = null;
             videoRef.current.pause();
-            console.log('[Camera] Video element cleared');
         }
         
-        // Close modal first
-        console.log('[Camera] Setting modal state to false...');
         setShowCameraModal(false);
-        console.log('[Camera] Modal should be closing now');
         
-        // Then reset states with a small delay to ensure clean closure
         setTimeout(() => {
-            console.log('[Camera] Resetting camera stream state');
             setCameraStream(null);
             if (videoRef.current) {
-                videoRef.current.load(); // Reset video element completely
+                videoRef.current.load();
             }
-            console.log('[Camera] Cleanup complete');
         }, 100);
     };
 
     // Capture photo from video stream
     const capturePhoto = async () => {
-        console.log('[Camera] Capture Photo button clicked');
         if (!videoRef.current || !canvasRef.current) return;
 
         const video = videoRef.current;
         const canvas = canvasRef.current;
         
-        console.log('[Camera] Setting canvas dimensions...');
-        // Set canvas dimensions to match video
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         
-        console.log('[Camera] Drawing video frame to canvas...');
-        // Draw current video frame to canvas
         const context = canvas.getContext("2d");
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        console.log('[Camera] Frame captured to canvas');
         
-        // Convert canvas to blob
-        console.log('[Camera] Converting canvas to blob...');
         canvas.toBlob(async (blob) => {
             if (blob) {
-                console.log('[Camera] Blob created, creating file...');
-                // Create a File object from the blob
                 const file = new File([blob], `camera-capture-${Date.now()}.jpg`, { 
                     type: 'image/jpeg' 
                 });
                 
-                console.log('[Camera] File created, size:', (file.size / 1024 / 1024).toFixed(2), 'MB');
-                
-                // Compress if needed
-                const needsCompression = file.size > 1024 * 1024;
-                if (needsCompression) {
+                if (file.size > 1024 * 1024) {
                     try {
-                        console.log(`[Camera] Compressing captured image: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
                         const compressedFile = await compressImage(file);
-                        console.log(`[Camera] Compressed to: ${(compressedFile.size / 1024 / 1024).toFixed(2)}MB`);
                         setSelectedFile(compressedFile);
                     } catch (error) {
-                        console.error('[Camera] Compression failed, using original:', error);
                         setSelectedFile(file);
                     }
                 } else {
-                    console.log('[Camera] No compression needed, setting file...');
                     setSelectedFile(file);
                 }
                 
-                // Reset results when new file is captured
-                console.log('[Camera] Resetting OCR results...');
                 setOcrResults(null);
-                
-                // Close modal
-                console.log('[Camera] Calling closeCameraModal...');
                 closeCameraModal();
             }
         }, 'image/jpeg', 0.92);
@@ -855,7 +541,6 @@ export default function ScanReceipt({ auth }) {
     const handleDragLeave = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        // Only set dragging to false if we're leaving the drop zone entirely
         if (!e.currentTarget.contains(e.relatedTarget)) {
             setIsDragging(false);
         }
@@ -875,36 +560,17 @@ export default function ScanReceipt({ auth }) {
         const imageFile = files.find((file) => file.type.startsWith("image/"));
 
         if (imageFile) {
-            // Use the same file processing logic as handleFileChange
-            const needsCompression = imageFile.size > 1024 * 1024;
-
-            if (needsCompression) {
+            if (imageFile.size > 1024 * 1024) {
                 try {
-                    console.log(
-                        `Compressing image: ${(
-                            imageFile.size /
-                            1024 /
-                            1024
-                        ).toFixed(2)}MB`
-                    );
                     const compressedFile = await compressImage(imageFile);
-                    console.log(
-                        `Compressed to: ${(
-                            compressedFile.size /
-                            1024 /
-                            1024
-                        ).toFixed(2)}MB`
-                    );
                     setSelectedFile(compressedFile);
                 } catch (error) {
-                    console.error("Compression failed, using original:", error);
                     setSelectedFile(imageFile);
                 }
             } else {
                 setSelectedFile(imageFile);
             }
 
-            // Reset results when new file is selected
             setOcrResults(null);
         } else {
             alert("Please drop an image file (PNG, JPG, or JPEG)");
