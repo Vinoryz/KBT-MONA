@@ -932,7 +932,7 @@ export default function Budget() {
 
                     {/* budget cards grid */}
                     {budgets.length === 0 ? (
-                        <div className="bg-white rounded-xl p-8 sm:p-12 text-center shadow-sm">
+                        <div className="bg-white rounded-xl p-8 sm:p-12 text-center shadow-sm animate-fade-in-up delay-500">
                             <div className="text-gray-400 text-base sm:text-lg mb-4">
                                 No budgets set for this month
                             </div>
