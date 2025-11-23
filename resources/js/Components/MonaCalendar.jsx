@@ -132,6 +132,15 @@ export default function MonaCalendar({ selected, onChange, maxDate = null, initi
     };
 
     const handleNextMonth = () => {
+        const today = new Date();
+        const todayYear = today.getFullYear();
+        const todayMonth = today.getMonth();
+        
+        // Don't allow navigating to future months
+        if (currentYear === todayYear && currentMonth === todayMonth) {
+            return;
+        }
+        
         if (currentMonth === 11) {
             setCurrentMonth(0);
             setCurrentYear(currentYear + 1);
@@ -345,7 +354,11 @@ export default function MonaCalendar({ selected, onChange, maxDate = null, initi
                             type="button"
                             onClick={handleNextClick}
                             className="calendar-nav-button"
-                            disabled={view === "month" || (view === "year" && yearRangeStart + 16 > new Date().getFullYear())}
+                            disabled={
+                                view === "month" || 
+                                (view === "year" && yearRangeStart + 16 > new Date().getFullYear()) ||
+                                (view === "day" && currentYear === new Date().getFullYear() && currentMonth === new Date().getMonth())
+                            }
                         >
                             <ChevronRightIcon className="w-5 h-5" />
                         </button>
