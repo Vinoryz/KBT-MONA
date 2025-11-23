@@ -5,8 +5,7 @@ import InputError from "@/Components/InputError";
 import InputLabel from "@/Components/InputLabel";
 import PrimaryButton from "@/Components/PrimaryButton";
 import TextInput from "@/Components/TextInput";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import MonaCalendar from "@/Components/MonaCalendar";
 import { Transition } from "@headlessui/react";
 import AppLayout from "@/Layouts/AppLayout";
 import ReactCrop from "react-image-crop";
@@ -568,48 +567,13 @@ export default function Edit({ mustVerifyEmail, status }) {
                                         htmlFor="date_of_birth"
                                         value="Date of Birth"
                                     />
-                                    <div className="relative mt-1">
-                                        <DatePicker
+                                    <div className="mt-1">
+                                        <MonaCalendar
                                             selected={selectedDate}
                                             onChange={handleDateChange}
-                                            dateFormat="dd/MM/yyyy"
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg cursor-pointer focus:ring-2 focus:ring-[#058743] focus:border-transparent"
-                                            calendarClassName="custom-calendar"
-                                            wrapperClassName="w-full"
-                                            placeholderText="DD/MM/YYYY"
-                                            showPopperArrow={false}
                                             maxDate={new Date()}
-                                            showYearDropdown
-                                            showMonthDropdown
-                                            dropdownMode="select"
-                                            yearDropdownItemNumber={100}
-                                            scrollableYearDropdown
-                                            onKeyDown={(e) => {
-                                                // Prevent all keyboard input except Tab for accessibility
-                                                if (e.key !== "Tab") {
-                                                    e.preventDefault();
-                                                }
-                                            }}
-                                            onChangeRaw={(e) =>
-                                                e.preventDefault()
-                                            }
+                                            initialYearsBack={15}
                                         />
-                                        {/* Calendar Icon */}
-                                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                            <svg
-                                                className="w-5 h-5 text-gray-400"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
-                                            >
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth={2}
-                                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                                />
-                                            </svg>
-                                        </div>
                                     </div>
                                     <InputError
                                         className="mt-2"
@@ -967,155 +931,7 @@ export default function Edit({ mustVerifyEmail, status }) {
                 </div>
             )}
 
-            {/* Custom DatePicker Styles */}
-            <style jsx>{`
-                /* Base DatePicker Styles */
-                .react-datepicker-popper {
-                    z-index: 9999 !important;
-                }
 
-                .react-datepicker {
-                    font-family: inherit !important;
-                    border: none !important;
-                    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
-                    border-radius: 16px !important;
-                    padding: 16px !important;
-                    background-color: white !important;
-                }
-
-                .react-datepicker__header {
-                    background-color: white !important;
-                    border-bottom: 1px solid #f0f0f0 !important;
-                    padding: 16px 0 !important;
-                    border-top-left-radius: 16px !important;
-                    border-top-right-radius: 16px !important;
-                }
-
-                .react-datepicker__current-month {
-                    font-size: 18px !important;
-                    font-weight: 700 !important;
-                    color: #1a1a1a !important;
-                    margin-bottom: 12px !important;
-                }
-
-                .react-datepicker__day-names {
-                    display: flex !important;
-                    justify-content: space-between !important;
-                    margin-top: 12px !important;
-                }
-
-                .react-datepicker__day-name {
-                    color: #666 !important;
-                    font-weight: 600 !important;
-                    font-size: 13px !important;
-                    width: 40px !important;
-                    line-height: 40px !important;
-                    margin: 0 !important;
-                }
-
-                .react-datepicker__month {
-                    margin: 0 !important;
-                    padding: 8px 0 !important;
-                }
-
-                .react-datepicker__week {
-                    display: flex !important;
-                    justify-content: space-between !important;
-                }
-
-                .react-datepicker__day {
-                    width: 40px !important;
-                    height: 40px !important;
-                    line-height: 40px !important;
-                    margin: 2px !important;
-                    border-radius: 8px !important;
-                    color: #1a1a1a !important;
-                    font-weight: 500 !important;
-                    transition: all 0.2s ease !important;
-                }
-
-                .react-datepicker__day:hover {
-                    background-color: #f5f5f5 !important;
-                    border-radius: 8px !important;
-                }
-
-                /* Selected date - Growth Green background with white text */
-                .react-datepicker__day--selected {
-                    background-color: #058743 !important;
-                    color: white !important;
-                    font-weight: 600 !important;
-                }
-
-                .react-datepicker__day--selected:hover {
-                    background-color: #046d36 !important;
-                }
-
-                /* Remove keyboard-selected state to avoid "half pressed" appearance */
-                .react-datepicker__day--keyboard-selected {
-                    background-color: transparent !important;
-                    color: inherit !important;
-                }
-
-                .react-datepicker__day--keyboard-selected:hover {
-                    background-color: #f5f5f5 !important;
-                }
-
-                /* Today's date - Growth Green color with light background */
-                .react-datepicker__day--today {
-                    font-weight: 600 !important;
-                    color: #058743 !important;
-                    background-color: #d4eadf !important;
-                }
-
-                .react-datepicker__day--today:hover {
-                    background-color: #c0e0cb !important;
-                }
-
-                /* Selected date overrides today styling - solid growth green */
-                .react-datepicker__day--selected.react-datepicker__day--today {
-                    background-color: #058743 !important;
-                    color: white !important;
-                    font-weight: 600 !important;
-                }
-
-                .react-datepicker__day--outside-month {
-                    color: #d0d0d0 !important;
-                }
-
-                .react-datepicker__navigation {
-                    top: 20px !important;
-                }
-
-                .react-datepicker__navigation-icon::before {
-                    border-color: #666 !important;
-                    border-width: 2px 2px 0 0 !important;
-                }
-
-                .react-datepicker__navigation:hover *::before {
-                    border-color: #058743 !important;
-                }
-
-                /* Mobile adjustments */
-                @media (max-width: 640px) {
-                    .react-datepicker {
-                        width: 100% !important;
-                        max-width: none !important;
-                        padding: 8px !important;
-                    }
-
-                    .react-datepicker__current-month {
-                        font-size: 13px !important;
-                    }
-
-                    .react-datepicker__day-name,
-                    .react-datepicker__day {
-                        width: 28px !important;
-                        height: 28px !important;
-                        line-height: 28px !important;
-                        font-size: 11px !important;
-                    }
-                }
-            `}</style>
 
         </AppLayout>
     );

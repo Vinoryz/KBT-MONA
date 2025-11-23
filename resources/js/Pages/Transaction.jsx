@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import AppLayout from "@/Layouts/AppLayout";
 import { Head } from "@inertiajs/react";
 import axios from "axios";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import MonaCalendar from "@/Components/MonaCalendar";
 
 // Helper functions for number formatting
 const formatNumberWithDots = (value) => {
@@ -40,6 +39,9 @@ export default function Transaction({ auth }) {
         date: new Date().toISOString().split("T")[0], // Today's date
         description: "",
     });
+
+    // Selected date for calendar
+    const [selectedDate, setSelectedDate] = useState(new Date());
 
     // Transaction details state (itemized list)
     const [transactionDetails, setTransactionDetails] = useState([]);
@@ -99,6 +101,15 @@ export default function Transaction({ auth }) {
         const month = (date.getMonth() + 1).toString().padStart(2, "0");
         const year = date.getFullYear();
         return `${day}/${month}/${year}`;
+    };
+
+    // Handle date change from MonaCalendar
+    const handleDateChange = (date) => {
+        setSelectedDate(date);
+        if (date) {
+            const formattedDate = date.toISOString().split("T")[0];
+            setFormData({ ...formData, date: formattedDate });
+        }
     };
 
     // Fetch categories from API based on transaction type
@@ -357,6 +368,7 @@ export default function Transaction({ auth }) {
                 date: new Date().toISOString().split("T")[0],
                 description: "",
             });
+            setSelectedDate(new Date());
 
             // Reset transaction details
             setTransactionDetails([]);
@@ -695,161 +707,6 @@ export default function Transaction({ auth }) {
                 }
                 .animate-slide-in-right {
                     animation: slideInRight 0.3s ease-out;
-                }
-
-                /* Base DatePicker Styles */
-                .react-datepicker-popper {
-                    z-index: 9999 !important;
-                }
-
-                .react-datepicker {
-                    font-family: inherit !important;
-                    border: none !important;
-                    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
-                    border-radius: 16px !important;
-                    padding: 16px !important;
-                    background-color: white !important;
-                }
-
-                .react-datepicker__header {
-                    background-color: white !important;
-                    border-bottom: 1px solid #f0f0f0 !important;
-                    padding: 16px 0 !important;
-                    border-top-left-radius: 16px !important;
-                    border-top-right-radius: 16px !important;
-                }
-
-                .react-datepicker__current-month {
-                    font-size: 18px !important;
-                    font-weight: 700 !important;
-                    color: #1a1a1a !important;
-                    margin-bottom: 12px !important;
-                }
-
-                .react-datepicker__day-names {
-                    display: flex !important;
-                    justify-content: space-between !important;
-                    margin-top: 12px !important;
-                }
-
-                .react-datepicker__day-name {
-                    color: #666 !important;
-                    font-weight: 600 !important;
-                    font-size: 13px !important;
-                    width: 40px !important;
-                    line-height: 40px !important;
-                    margin: 0 !important;
-                }
-
-                .react-datepicker__month {
-                    margin: 0 !important;
-                    padding: 8px 0 !important;
-                }
-
-                .react-datepicker__week {
-                    display: flex !important;
-                    justify-content: space-between !important;
-                }
-
-                .react-datepicker__day {
-                    width: 40px !important;
-                    height: 40px !important;
-                    line-height: 40px !important;
-                    margin: 2px !important;
-                    border-radius: 8px !important;
-                    color: #1a1a1a !important;
-                    font-weight: 500 !important;
-                    transition: all 0.2s ease !important;
-                }
-
-                .react-datepicker__day:hover {
-                    background-color: #f5f5f5 !important;
-                    border-radius: 8px !important;
-                }
-
-                /* Selected date - Growth Green background with white text */
-                .react-datepicker__day--selected {
-                    background-color: #058743 !important;
-                    color: white !important;
-                    font-weight: 600 !important;
-                }
-
-                .react-datepicker__day--selected:hover {
-                    background-color: #046d36 !important;
-                }
-
-                /* Remove keyboard-selected state to avoid "half pressed" appearance */
-                .react-datepicker__day--keyboard-selected {
-                    background-color: transparent !important;
-                    color: inherit !important;
-                }
-
-                .react-datepicker__day--keyboard-selected:hover {
-                    background-color: #f5f5f5 !important;
-                }
-
-                /* Today's date - Growth Green color with light background */
-                .react-datepicker__day--today {
-                    font-weight: 600 !important;
-                    color: #058743 !important;
-                    background-color: #d4eadf !important;
-                }
-
-                .react-datepicker__day--today:hover {
-                    background-color: #c0e0cb !important;
-                }
-
-                /* Selected date overrides today styling - solid growth green */
-                .react-datepicker__day--selected.react-datepicker__day--today {
-                    background-color: #058743 !important;
-                    color: white !important;
-                    font-weight: 600 !important;
-                }
-
-                .react-datepicker__day--outside-month {
-                    color: #d0d0d0 !important;
-                }
-
-                .react-datepicker__navigation {
-                    top: 20px !important;
-                }
-
-                .react-datepicker__navigation-icon::before {
-                    border-color: #666 !important;
-                    border-width: 2px 2px 0 0 !important;
-                }
-
-                .react-datepicker__navigation:hover *::before {
-                    border-color: #058743 !important;
-                }
-
-                /* Mobile adjustments */
-                @media (max-width: 640px) {
-                    .react-datepicker {
-                        width: 100% !important;
-                        max-width: none !important;
-                        padding: 8px !important;
-                    }
-
-                    .react-datepicker__current-month {
-                        font-size: 13px !important;
-                    }
-
-                    .react-datepicker__day-name,
-                    .react-datepicker__day {
-                        width: 28px !important;
-                        height: 28px !important;
-                        line-height: 28px !important;
-                        font-size: 11px !important;
-                    }
-
-                    .react-datepicker__header {
-                        padding: 10px 0 !important;
-                    }
-
-                    .react-datepicker__month {
-                        padding: 6px 0 !important;
-                    }
                 }
             `}</style>
 
@@ -1293,89 +1150,11 @@ export default function Transaction({ auth }) {
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Date*
                                     </label>
-                                    <div className="relative">
-                                        <DatePicker
-                                            selected={
-                                                formData.date
-                                                    ? new Date(formData.date)
-                                                    : new Date()
-                                            }
-                                            onChange={(date) => {
-                                                const today = new Date();
-                                                today.setHours(0, 0, 0, 0);
-                                                const selectedDate = new Date(
-                                                    date
-                                                );
-                                                selectedDate.setHours(
-                                                    0,
-                                                    0,
-                                                    0,
-                                                    0
-                                                );
-
-                                                if (selectedDate > today) {
-                                                    // Show warning for future dates
-                                                    setShowDateWarning(true);
-                                                    setTimeout(
-                                                        () =>
-                                                            setShowDateWarning(
-                                                                false
-                                                            ),
-                                                        3000
-                                                    );
-                                                } else {
-                                                    const formattedDate = date
-                                                        .toISOString()
-                                                        .split("T")[0];
-                                                    setFormData({
-                                                        ...formData,
-                                                        date: formattedDate,
-                                                    });
-                                                }
-                                            }}
-                                            dateFormat="dd/MM/yyyy"
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg cursor-pointer focus:ring-2 focus:ring-[#058743] focus:border-transparent"
-                                            calendarClassName="custom-calendar"
-                                            wrapperClassName="w-full"
-                                            placeholderText="DD/MM/YYYY"
-                                            showPopperArrow={false}
-                                            onKeyDown={(e) => {
-                                                // Prevent all keyboard input except Tab for accessibility
-                                                if (e.key !== "Tab") {
-                                                    e.preventDefault();
-                                                }
-                                            }}
-                                            onChangeRaw={(e) =>
-                                                e.preventDefault()
-                                            }
-                                            dayClassName={(date) => {
-                                                const today = new Date();
-                                                today.setHours(0, 0, 0, 0);
-                                                const checkDate = new Date(
-                                                    date
-                                                );
-                                                checkDate.setHours(0, 0, 0, 0);
-
-                                                return checkDate > today
-                                                    ? "future-date"
-                                                    : undefined;
-                                            }}
-                                        />
-                                        {/* Calendar icon */}
-                                        <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none">
-                                            <svg
-                                                className="w-5 h-5 text-gray-400"
-                                                fill="currentColor"
-                                                viewBox="0 0 20 20"
-                                            >
-                                                <path
-                                                    fillRule="evenodd"
-                                                    d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-                                                    clipRule="evenodd"
-                                                />
-                                            </svg>
-                                        </div>
-                                    </div>
+                                    <MonaCalendar
+                                        selected={selectedDate}
+                                        onChange={handleDateChange}
+                                        maxDate={new Date()}
+                                    />
                                 </div>
 
                                 {/* Description */}
