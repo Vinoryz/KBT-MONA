@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import AppLayout from "@/Layouts/AppLayout";
 import axios from "axios";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import MonaCalendar from "@/Components/MonaCalendar";
 
 const formatNumberWithDots = (value) => {
     if (!value) return "";
@@ -36,6 +35,9 @@ export default function ScanReceipt({ auth }) {
     const [submitting, setSubmitting] = useState(false);
     const [message, setMessage] = useState({ type: "", text: "" });
     const [showDateWarning, setShowDateWarning] = useState(false);
+
+    // Selected date for calendar
+    const [selectedDate, setSelectedDate] = useState(null);
 
     // Itemized items state - for editing OCR items only
     const [editingItemIndex, setEditingItemIndex] = useState(null);
@@ -81,6 +83,17 @@ export default function ScanReceipt({ auth }) {
     const showMessage = (type, text) => {
         setMessage({ type, text });
         setTimeout(() => setMessage({ type: "", text: "" }), 5000);
+    };
+
+    // Handle date change from MonaCalendar
+    const handleDateChangeFromCalendar = (date) => {
+        setSelectedDate(date);
+        if (date) {
+            const formattedDate = date.toISOString().split("T")[0];
+            handleInputChange("date", formattedDate);
+        } else {
+            handleInputChange("date", "");
+        }
     };
 
     // Initialize edited items from OCR results
@@ -233,12 +246,14 @@ export default function ScanReceipt({ auth }) {
             }
 
             setOcrResults(ocrData);
+            const dateStr = ocrData.date || new Date().toISOString().split("T")[0];
             setFormData({
                 amount: ocrData.amount?.toString() || "",
                 category: ocrData.category_id || "",
-                date: ocrData.date || new Date().toISOString().split("T")[0],
+                date: dateStr,
                 description: ocrData.description || "Receipt transaction",
             });
+            setSelectedDate(new Date(dateStr));
 
             const itemCount = ocrData.items?.length || 0;
             showMessage(
@@ -358,6 +373,7 @@ export default function ScanReceipt({ auth }) {
                     date: "",
                     description: "",
                 });
+                setSelectedDate(null);
                 setOcrResults(null);
                 setEditedItems([]);
                 setSelectedFile(null);
@@ -1138,102 +1154,11 @@ export default function ScanReceipt({ auth }) {
                                                 *
                                             </span>
                                         </label>
-                                        <div className="relative">
-                                            <DatePicker
-                                                selected={
-                                                    formData.date
-                                                        ? new Date(
-                                                              formData.date
-                                                          )
-                                                        : null
-                                                }
-                                                onChange={(date) => {
-                                                    const today = new Date();
-                                                    today.setHours(0, 0, 0, 0);
-                                                    const selectedDate =
-                                                        new Date(date);
-                                                    selectedDate.setHours(
-                                                        0,
-                                                        0,
-                                                        0,
-                                                        0
-                                                    );
-
-                                                    if (selectedDate > today) {
-                                                        // Show warning for future dates
-                                                        setShowDateWarning(
-                                                            true
-                                                        );
-                                                        setTimeout(
-                                                            () =>
-                                                                setShowDateWarning(
-                                                                    false
-                                                                ),
-                                                            3000
-                                                        );
-                                                    } else {
-                                                        const formattedDate =
-                                                            date
-                                                                ? date
-                                                                      .toISOString()
-                                                                      .split(
-                                                                          "T"
-                                                                      )[0]
-                                                                : "";
-                                                        handleInputChange(
-                                                            "date",
-                                                            formattedDate
-                                                        );
-                                                    }
-                                                }}
-                                                dateFormat="dd/MM/yyyy"
-                                                className="w-full px-3 py-2 border border-light-gray rounded text-charcoal bg-gray-100 cursor-pointer focus:ring-2 focus:ring-[#058743] focus:border-transparent"
-                                                calendarClassName="custom-calendar"
-                                                wrapperClassName="w-full"
-                                                placeholderText="DD/MM/YYYY"
-                                                showPopperArrow={false}
-                                                onKeyDown={(e) => {
-                                                    // Prevent all keyboard input except Tab for accessibility
-                                                    if (e.key !== "Tab") {
-                                                        e.preventDefault();
-                                                    }
-                                                }}
-                                                onChangeRaw={(e) =>
-                                                    e.preventDefault()
-                                                }
-                                                dayClassName={(date) => {
-                                                    const today = new Date();
-                                                    today.setHours(0, 0, 0, 0);
-                                                    const checkDate = new Date(
-                                                        date
-                                                    );
-                                                    checkDate.setHours(
-                                                        0,
-                                                        0,
-                                                        0,
-                                                        0
-                                                    );
-
-                                                    return checkDate > today
-                                                        ? "future-date"
-                                                        : undefined;
-                                                }}
-                                            />
-                                            {/* Calendar icon */}
-                                            <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                                                <svg
-                                                    className="w-4 h-4 text-gray-400"
-                                                    fill="currentColor"
-                                                    viewBox="0 0 20 20"
-                                                >
-                                                    <path
-                                                        fillRule="evenodd"
-                                                        d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-                                                        clipRule="evenodd"
-                                                    />
-                                                </svg>
-                                            </div>
-                                        </div>
+                                        <MonaCalendar
+                                            selected={selectedDate}
+                                            onChange={handleDateChangeFromCalendar}
+                                            maxDate={new Date()}
+                                        />
                                     </div>
 
                                     {/* Description Field */}
