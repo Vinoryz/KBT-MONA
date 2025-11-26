@@ -15,15 +15,289 @@ const formatCurrency = (value) => {
     return `${value < 0 ? "-" : ""}Rp${formatted}`;
 };
 
+// Type Filter Dropdown Component
+function TypeFilterDropdown({ filterType, onTypeChange }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const [buttonWidth, setButtonWidth] = useState("auto");
+    const dropdownRef = useRef(null);
+    const buttonRef = useRef(null);
+
+    const typeOptions = [
+        { value: "All", label: "All Types" },
+        { value: "Income", label: "Income" },
+        { value: "Expense", label: "Expense" },
+    ];
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (
+                dropdownRef.current &&
+                !dropdownRef.current.contains(event.target)
+            ) {
+                setIsOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () =>
+            document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    // Update button width when dropdown opens
+    useEffect(() => {
+        if (isOpen && buttonRef.current) {
+            setButtonWidth(`${buttonRef.current.offsetWidth}px`);
+        }
+    }, [isOpen]);
+
+    const handleSelectType = (value) => {
+        onTypeChange(value);
+        setIsOpen(false);
+    };
+
+    const getDisplayText = () => {
+        const selected = typeOptions.find((opt) => opt.value === filterType);
+        return selected ? selected.label : "All Types";
+    };
+
+    return (
+        <div className="relative w-full sm:w-auto z-[1000]" ref={dropdownRef}>
+            {/* Dropdown Button */}
+            <button
+                ref={buttonRef}
+                type="button"
+                onClick={(e) => {
+                    e.preventDefault();
+                    setIsOpen(!isOpen);
+                }}
+                className="w-full sm:w-auto min-w-[150px] text-sm sm:text-base border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 bg-white px-3 py-2 text-left flex items-center justify-between"
+            >
+                <span className="truncate">{getDisplayText()}</span>
+                <svg
+                    className={`w-5 h-5 transition-transform ml-2 flex-shrink-0 ${
+                        isOpen ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                    />
+                </svg>
+            </button>
+
+            {/* Dropdown Menu */}
+            {isOpen && (
+                <div
+                    className="absolute left-0 right-0 sm:left-0 sm:right-auto bg-white border border-gray-300 rounded-md shadow-2xl mt-2 overflow-hidden z-[9999]"
+                    style={{ width: buttonWidth }}
+                >
+                    {/* Type List */}
+                    <div className="overflow-y-auto max-h-80">
+                        {typeOptions.map((option) => (
+                            <div
+                                key={option.value}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleSelectType(option.value);
+                                }}
+                                className={`px-4 py-2.5 hover:bg-gray-100 cursor-pointer transition ${
+                                    filterType === option.value
+                                        ? "bg-green-50 border-l-4 border-green-600"
+                                        : ""
+                                }`}
+                            >
+                                <span className="text-sm text-gray-900">
+                                    {option.label}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+// Multi-Select Dropdown Component
+function MultiSelectDropdown({
+    availableCategories,
+    selectedCategories,
+    onSelectionChange,
+}) {
+    const [isOpen, setIsOpen] = useState(false);
+    const [buttonWidth, setButtonWidth] = useState("auto");
+    const dropdownRef = useRef(null);
+    const buttonRef = useRef(null);
+
+    // Debug: Check what we're receiving
+    useEffect(() => {
+        console.log("Available Categories:", availableCategories);
+        console.log("Selected Categories:", selectedCategories);
+    }, [availableCategories, selectedCategories]);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (
+                dropdownRef.current &&
+                !dropdownRef.current.contains(event.target)
+            ) {
+                setIsOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () =>
+            document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    // Update button width when dropdown opens
+    useEffect(() => {
+        if (isOpen && buttonRef.current) {
+            setButtonWidth(`${buttonRef.current.offsetWidth}px`);
+        }
+    }, [isOpen]);
+
+    const toggleCategory = (categoryName) => {
+        if (selectedCategories.includes(categoryName)) {
+            onSelectionChange(
+                selectedCategories.filter((cat) => cat !== categoryName)
+            );
+        } else {
+            onSelectionChange([...selectedCategories, categoryName]);
+        }
+    };
+
+    const selectAll = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onSelectionChange(availableCategories.map((cat) => cat.category_name));
+    };
+
+    const clearAll = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onSelectionChange([]);
+    };
+
+    const getDisplayText = () => {
+        if (selectedCategories.length === 0) return "All Categories";
+        if (selectedCategories.length === 1) return selectedCategories[0];
+        return `${selectedCategories.length} categories selected`;
+    };
+
+    return (
+        <div className="relative w-full sm:w-auto z-[1000]" ref={dropdownRef}>
+            {/* Dropdown Button */}
+            <button
+                ref={buttonRef}
+                type="button"
+                onClick={(e) => {
+                    e.preventDefault();
+                    setIsOpen(!isOpen);
+                }}
+                className="w-full sm:w-auto min-w-[200px] text-sm sm:text-base border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 bg-white px-3 py-2 text-left flex items-center justify-between"
+            >
+                <span className="truncate">{getDisplayText()}</span>
+                <svg
+                    className={`w-5 h-5 transition-transform ml-2 flex-shrink-0 ${
+                        isOpen ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                    />
+                </svg>
+            </button>
+
+            {/* Dropdown Menu */}
+            {isOpen && (
+                <div
+                    className="absolute left-0 right-0 sm:left-0 sm:right-auto bg-white border border-gray-300 rounded-md shadow-2xl mt-2 overflow-hidden z-[9999]"
+                    style={{ width: buttonWidth }}
+                >
+                    {/* Select All / Clear All Buttons */}
+                    <div className="bg-gray-50 border-b border-gray-200 p-2 flex gap-2">
+                        <button
+                            type="button"
+                            onClick={selectAll}
+                            className="flex-1 text-xs px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition font-medium"
+                        >
+                            Select All
+                        </button>
+                        <button
+                            type="button"
+                            onClick={clearAll}
+                            className="flex-1 text-xs px-3 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition font-medium"
+                        >
+                            Clear All
+                        </button>
+                    </div>
+
+                    {/* Category List with Checkboxes */}
+                    <div className="overflow-y-auto max-h-80">
+                        {availableCategories &&
+                        availableCategories.length > 0 ? (
+                            availableCategories.map((category) => {
+                                const isSelected = selectedCategories.includes(
+                                    category.category_name
+                                );
+                                return (
+                                    <div
+                                        key={category.id}
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            toggleCategory(
+                                                category.category_name
+                                            );
+                                        }}
+                                        className="flex items-center px-4 py-2.5 hover:bg-gray-100 cursor-pointer transition"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={isSelected}
+                                            onChange={() => {}}
+                                            className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2"
+                                        />
+                                        <span className="ml-3 text-sm text-gray-900">
+                                            {category.category_name}
+                                        </span>
+                                    </div>
+                                );
+                            })
+                        ) : (
+                            <div className="px-4 py-6 text-sm text-gray-500 text-center">
+                                No categories available (Total:{" "}
+                                {availableCategories?.length || 0})
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
 export default function History({ auth, categories = [] }) {
     // State filter
     const [searchTerm, setSearchTerm] = useState("");
     const [filterType, setFilterType] = useState("All");
-    const [filterCategory, setFilterCategory] = useState("All");
-    const [transactions, setTransactions] = useState([]);
+    const [filterCategory, setFilterCategory] = useState([]); // Changed to array
+    const [allTransactions, setAllTransactions] = useState([]); // All transactions from API
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [meta, setMeta] = useState(null);
     const [deletingId, setDeletingId] = useState(null);
     const [message, setMessage] = useState({ type: "", text: "" });
     const [editingTransaction, setEditingTransaction] = useState(null);
@@ -37,7 +311,7 @@ export default function History({ auth, categories = [] }) {
     // State for delete confirmation modal
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [transactionToDelete, setTransactionToDelete] = useState(null);
-    
+
     // Success modal state
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [successMessage, setSuccessMessage] = useState("");
@@ -57,13 +331,24 @@ export default function History({ auth, categories = [] }) {
 
     const availableCategories = getAvailableCategories();
 
-    // ✅ Aman dari null values
-    const filteredTransactions = transactions.filter((transaction) => {
+    // Debug: Log categories
+    useEffect(() => {
+        console.log("=== DEBUG INFO ===");
+        console.log("Raw categories prop:", categories);
+        console.log("Filter type:", filterType);
+        console.log("Available categories:", availableCategories);
+        console.log("Selected categories:", filterCategory);
+    }, [categories, filterType, availableCategories, filterCategory]);
+
+    // Filter transactions in memory
+    const filteredTransactions = allTransactions.filter((transaction) => {
         const typeMatch =
             filterType === "All" || transaction.type === filterType;
+
+        // Multi-category match
         const categoryMatch =
-            filterCategory === "All" ||
-            (transaction.category ?? "") === filterCategory;
+            filterCategory.length === 0 ||
+            filterCategory.includes(transaction.category ?? "");
 
         const desc = (transaction.description ?? "").toLowerCase();
         const cat = (transaction.category ?? "").toLowerCase();
@@ -146,35 +431,46 @@ export default function History({ auth, categories = [] }) {
         }
     };
 
-    const fetchTransactions = async (page = 1) => {
+    const fetchTransactions = async () => {
         setLoading(true);
         setError(null);
 
-        const paramsObj = {};
-        if (filterType !== "All") paramsObj.type = filterType.toLowerCase();
-        if (filterCategory !== "All" && categoryNameToIdMap[filterCategory]) {
-            paramsObj.category_id = categoryNameToIdMap[filterCategory];
-        } else if (filterCategory !== "All") {
-            paramsObj.search = filterCategory;
-        }
-        if (searchTerm) paramsObj.search = searchTerm;
-        paramsObj.per_page = "100";
-        paramsObj.page = String(page);
-
         try {
             await axios.get("/sanctum/csrf-cookie");
-            const res = await axios.get("/api/transactions", {
-                params: paramsObj,
-                headers: {
-                    Accept: "application/json",
-                    "X-Requested-With": "XMLHttpRequest",
-                },
-                withCredentials: true,
-            });
-            const body = res.data;
-            setTransactions(body.data ?? []);
-            setMeta(body.meta ?? null);
+            let allData = [];
+            let page = 1;
+            let hasMorePages = true;
+
+            // Fetch all pages
+            while (hasMorePages) {
+                const res = await axios.get("/api/transactions", {
+                    params: {
+                        per_page: "100",
+                        page: String(page),
+                    },
+                    headers: {
+                        Accept: "application/json",
+                        "X-Requested-With": "XMLHttpRequest",
+                    },
+                    withCredentials: true,
+                });
+
+                const body = res.data;
+                const pageData = body.data ?? [];
+                allData = [...allData, ...pageData];
+
+                // Check if there are more pages
+                const meta = body.meta ?? {};
+                hasMorePages = page < meta.last_page;
+                page++;
+            }
+
+            setAllTransactions(allData);
         } catch (err) {
+            console.error("Error fetching transactions:", err);
+            console.error("Error response:", err.response?.data);
+            console.error("Error status:", err.response?.status);
+
             if (err?.response?.status === 401) {
                 setError("Unauthorized — please log in.");
             } else {
@@ -206,18 +502,16 @@ export default function History({ auth, categories = [] }) {
 
     useEffect(() => {
         fetchCategories();
+        fetchTransactions(); // Fetch all transactions on component mount
     }, []);
 
-    useEffect(() => {
-        clearTimeout(searchRef.current);
-        searchRef.current = setTimeout(() => fetchTransactions(1), 300);
-        return () => clearTimeout(searchRef.current);
-    }, [filterType, filterCategory, searchTerm]);
+    // No need for debounce anymore since we're filtering in memory
+    // This effect will run whenever search or filter changes, but it's instant
 
     const clearFilters = () => {
         setSearchTerm("");
         setFilterType("All");
-        setFilterCategory("All");
+        setFilterCategory([]); // Changed to empty array
     };
 
     const showMessage = (type, text) => {
@@ -252,18 +546,20 @@ export default function History({ auth, categories = [] }) {
             if (response.data.status === "success") {
                 // Show success modal
                 setSuccessTitle("Transaction Deleted!");
-                setSuccessMessage("The transaction has been successfully removed.");
+                setSuccessMessage(
+                    "The transaction has been successfully removed."
+                );
                 setShowSuccessModal(true);
-                
+
                 // Auto-dismiss after 2 seconds
                 setTimeout(() => {
                     setShowSuccessModal(false);
                 }, 2000);
-                
+
                 // Dispatch event for notification bell to refresh
-                window.dispatchEvent(new CustomEvent('transaction-deleted'));
-                // Refresh the transactions list
-                fetchTransactions(1);
+                window.dispatchEvent(new CustomEvent("transaction-deleted"));
+                // Refresh the transactions list from API
+                fetchTransactions();
             }
         } catch (error) {
             console.error("Error deleting transaction:", error);
@@ -330,14 +626,14 @@ export default function History({ auth, categories = [] }) {
         setSuccessTitle("Transaction Updated!");
         setSuccessMessage("Your transaction has been successfully updated.");
         setShowSuccessModal(true);
-        
+
         // Auto-dismiss after 2 seconds
         setTimeout(() => {
             setShowSuccessModal(false);
         }, 2000);
-        
+
         // Refresh transactions after successful update
-        fetchTransactions(1);
+        fetchTransactions();
     };
 
     const totalTransactions = filteredTransactions.length;
@@ -435,7 +731,7 @@ export default function History({ auth, categories = [] }) {
                 </div>
 
                 {/* Filters */}
-                <div className="animate-fade-in-up delay-400 bg-white p-3 sm:p-4 rounded-lg shadow-md mb-6 sm:mb-8 flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
+                <div className="animate-fade-in-up delay-400 bg-white p-3 sm:p-4 rounded-lg shadow-md mb-6 sm:mb-8 flex flex-col sm:flex-row items-center gap-3 sm:gap-4 overflow-visible relative z-50">
                     <input
                         type="text"
                         placeholder="Search Transaction..."
@@ -443,33 +739,18 @@ export default function History({ auth, categories = [] }) {
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
-                    <select
-                        value={filterType}
-                        onChange={(e) => {
-                            setFilterType(e.target.value);
-                            setFilterCategory("All");
+                    <TypeFilterDropdown
+                        filterType={filterType}
+                        onTypeChange={(value) => {
+                            setFilterType(value);
+                            setFilterCategory([]); // Clear categories when type changes
                         }}
-                        className="w-full sm:w-auto text-sm sm:text-base border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
-                    >
-                        <option value="All">All Types</option>
-                        <option value="Income">Income</option>
-                        <option value="Expense">Expense</option>
-                    </select>
-                    <select
-                        value={filterCategory}
-                        onChange={(e) => setFilterCategory(e.target.value)}
-                        className="w-full sm:w-auto text-sm sm:text-base border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
-                    >
-                        <option value="All">All Categories</option>
-                        {availableCategories.map((category) => (
-                            <option
-                                key={category.id}
-                                value={category.category_name}
-                            >
-                                {category.category_name}
-                            </option>
-                        ))}
-                    </select>
+                    />
+                    <MultiSelectDropdown
+                        availableCategories={availableCategories}
+                        selectedCategories={filterCategory}
+                        onSelectionChange={setFilterCategory}
+                    />
                     <button
                         onClick={clearFilters}
                         className="w-full sm:w-auto text-sm sm:text-base text-gray-600 px-3 sm:px-4 py-2 rounded-md hover:bg-gray-100 transition flex-shrink-0"
@@ -479,7 +760,7 @@ export default function History({ auth, categories = [] }) {
                 </div>
 
                 {/* Transactions Table */}
-                <div className="animate-fade-in-up delay-500 bg-white overflow-hidden shadow-md rounded-lg">
+                <div className="animate-fade-in-up delay-500 bg-white overflow-visible shadow-md rounded-lg">
                     <div className="p-4 sm:p-6">
                         <h3 className="text-base sm:text-lg font-semibold text-gray-800">
                             Transactions
@@ -957,7 +1238,8 @@ export default function History({ auth, categories = [] }) {
                                 Delete Transaction
                             </h3>
                             <p className="text-gray-600 text-center mb-6">
-                                Are you sure you want to delete this transaction? This action cannot be undone.
+                                Are you sure you want to delete this
+                                transaction? This action cannot be undone.
                             </p>
                             <div className="flex gap-3">
                                 <button
@@ -1001,9 +1283,7 @@ export default function History({ auth, categories = [] }) {
                             <h3 className="text-2xl font-bold text-gray-900 mb-2">
                                 {successTitle}
                             </h3>
-                            <p className="text-gray-600">
-                                {successMessage}
-                            </p>
+                            <p className="text-gray-600">{successMessage}</p>
                         </div>
                     </div>
                 </div>
