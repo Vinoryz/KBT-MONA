@@ -56,12 +56,18 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y openvpn
+          
+      - name: Write and Patch OVPN Config
+        run: |
+          echo '${{ secrets.OVPN_CONFIG }}' > config.ovpn
+          sed -i '/cipher AES-128-CBC/a data-ciphers AES-128-CBC:AES-256-GCM:AES-128-GCM' config.ovpn
+
       
       - name: Connect to University OpenVPN
         uses: kota65535/github-openvpn-connect-action@v2 
         id: connect_vpn
         with:
-          config_file: .github/workflows/myitsvpn-5025231268@student.its.ac.id.ovpn
+          config_file: config.ovpn
           username: ${{ secrets.OVPN_USERNAME }}
           password: ${{ secrets.OVPN_PASSWORD }}
           
