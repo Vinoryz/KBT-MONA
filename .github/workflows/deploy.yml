@@ -51,7 +51,12 @@ jobs:
 
       - name: add service account key info
         run: echo '${{ secrets.SERVICE_ACCOUNT }}' > storage/app/secrets/healthy-spark-458003-h1-26f5513893cc.json
-         
+
+      - name: Install OpenVPN Client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openvpn
+      
       - name: Connect to University OpenVPN
         uses: kota65535/github-openvpn-connect-action@v2 
         id: connect_vpn
