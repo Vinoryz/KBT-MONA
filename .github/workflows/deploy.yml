@@ -55,9 +55,9 @@ jobs:
       - name: Debug config file content
         run: |
           echo "Content length check: ${{ secrets.OVPN_CONFIG }}" | wc -c
-          if [ -z "${{ secrets.OVPN_CONFIG }}" ]; then
-          echo "ERROR: OVPN_CONFIG secret is empty!"
-          exit 1
+          if [ -z '${{ secrets.OVPN_CONFIG }}' ]; then
+            echo "ERROR: OVPN_CONFIG secret is empty!"
+            exit 1
           fi
           
       - name: Connect to University OpenVPN
