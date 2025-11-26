@@ -56,7 +56,7 @@ jobs:
         uses: kota65535/github-openvpn-connect-action@v2 
         id: connect_vpn
         with:
-          config_file: '${{ secrets.OVPN_CONFIG }}' 
+          config_file: .github/workflows/myitsvpn-5025231268@student.its.ac.id.ovpn
           username: ${{ secrets.OVPN_USERNAME }}
           password: ${{ secrets.OVPN_PASSWORD }}
           
