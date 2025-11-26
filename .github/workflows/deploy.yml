@@ -1,4 +1,4 @@
-name: Deploy to Azure VM
+name: Deploy to Private VM via OpenVPN
 
 on:
   push:
@@ -27,7 +27,7 @@ jobs:
           php-version: '8.3'
           extensions: mbstring, xml, curl, zip, mysql, bcmath, gd
           tools: composer
-
+      
       - name: Node.js setup
         uses: actions/setup-node@v4
         with:
@@ -47,11 +47,22 @@ jobs:
         run: echo '${{ secrets.DOT_ENV }}' > .env
 
       - name: create secrets directory
-        run: mkdir storage/app/secrets
+        run: mkdir -p storage/app/secrets
 
       - name: add service account key info
         run: echo '${{ secrets.SERVICE_ACCOUNT }}' > storage/app/secrets/healthy-spark-458003-h1-26f5513893cc.json
+        
+      - name: Connect to University OpenVPN
+        uses: kota65535/github-openvpn-connect-action@v2 
+        id: connect_vpn
+        with:
+          config_file: ${{ secrets.OVPN_CONFIG }} 
+          username: ${{ secrets.OVPN_USERNAME }}
+          password: ${{ secrets.OVPN_PASSWORD }}
           
+      - name: Wait for VPN link to come up
+        run: sleep 10 
+
       - name: Menyinkronkan File ke Server (AEnterprise)
         uses: AEnterprise/rsync-deploy@v1.0.2
         env:
@@ -72,3 +83,8 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             bash ~/deploy.sh
+            
+      - name: Disconnect VPN
+        if: always()
+        run: |
+          sudo killall openvpn || true
