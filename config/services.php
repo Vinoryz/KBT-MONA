@@ -47,4 +47,9 @@ return [
         'model' => env('RAG_ENGINE_MODEL', 'gemini-2.0-flash-001'),
         'credentials' => env('GOOGLE_CLOUD_KEY_FILE'),
     ],
+
+    'senopati' => [
+        'api_url' => env('SENOPATI_API_URL'),
+        'model' => env('SENOPATI_MODEL'),
+    ],
 ];

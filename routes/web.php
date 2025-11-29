@@ -7,6 +7,7 @@ use App\Http\Controllers\DocumentAIController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\RagEngineController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\AiController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
@@ -96,6 +97,9 @@ Route::get('/dashboard-api-test', function () {
 
 Route::post('/process-receipt', [OcrController::class, 'processReceipt']);
 Route::post('/process-receipt-ai', [DocumentAIController::class, 'processReceipt']);
+
+// Endpoint ini akan diakses via POST ke: /api/chat-ai
+Route::post('/api/chat-ai', [AiController::class, 'chat']);
 
 // profile routes
 Route::middleware('auth')->group(function () {

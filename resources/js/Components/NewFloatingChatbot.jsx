@@ -1,7 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 
 export default function FloatingChatbot() {
     const [isOpen, setIsOpen] = useState(false);
@@ -23,6 +21,7 @@ export default function FloatingChatbot() {
         "How much should I budget for entertainment?"
     ];
 
+    // Close chatbox when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (chatboxRef.current && !chatboxRef.current.contains(event.target) && isOpen && !isClosing) {
@@ -45,9 +44,11 @@ export default function FloatingChatbot() {
         }, 290);
     };
 
+    // --- BAGIAN UTAMA YANG DIREFACTOR ---
     const submitQuestion = async (question) => {
         if (loading) return;
 
+        // 1. Tambahkan pesan pengguna ke UI
         const userMessage = {
             id: Date.now(),
             type: 'user',
@@ -57,31 +58,30 @@ export default function FloatingChatbot() {
         setLoading(true);
 
         try {
+            // 2. Panggil API sesuai Route & Controller Laravel yang baru
+            // Route: /api/chat-ai
+            // Body: { message: "..." }
             const response = await axios.post('/api/chat-ai', {
                 message: question, 
             });
 
-            // const data = response.data;
-
-            // DEBUG: tampilkan seluruh response untuk inspeksi
-            // console.log('[DEBUG] axios response (full):', response);
-            // console.log('[DEBUG] response.data:', response.data);
-            // console.log('[DEBUG] response.data.generated_response:', response.data.generated_response);
-            // console.log('[DEBUG] response.data.raw_data.message.content:', response.data.raw_data.message.content);
+            // 3. Parsing Response
+            // Karena Controller me-return raw JSON dari Qwen, kita harus ambil content-nya.
+            // Struktur umum LLM response (OpenAI format): data.choices[0].message.content
+            const data = response.data;
             
-            // let botResponseContent = '';
-            let botResponseContent = response.data.generated_response || 'No response from AI assistant';
+            let botResponseContent = '';
 
             // Cek struktur response (Safety check)
-            // if (data.choices && data.choices[0] && data.choices[0].message) {
-            //     botResponseContent = data.choices[0].message.content;
-            // } else if (data.data) {
-            //     // Kadang wrapper axios menaruhnya di data.data tergantung setup interceptor
-            //     botResponseContent = typeof data.data === 'string' ? data.data : JSON.stringify(data.data);
-            // } else {
-            //     // Fallback jika struktur berbeda, tampilkan JSON string agar bisa didebug
-            //     botResponseContent = typeof data === 'string' ? data : JSON.stringify(data);
-            // }
+            if (data.choices && data.choices[0] && data.choices[0].message) {
+                botResponseContent = data.choices[0].message.content;
+            } else if (data.data) {
+                // Kadang wrapper axios menaruhnya di data.data tergantung setup interceptor
+                botResponseContent = typeof data.data === 'string' ? data.data : JSON.stringify(data.data);
+            } else {
+                // Fallback jika struktur berbeda, tampilkan JSON string agar bisa didebug
+                botResponseContent = typeof data === 'string' ? data : JSON.stringify(data);
+            }
 
             const botMessage = {
                 id: Date.now() + 1,
@@ -103,6 +103,7 @@ export default function FloatingChatbot() {
             setLoading(false);
         }
     };
+    // ------------------------------------
 
     const handleSendMessage = (e) => {
         e.preventDefault();
@@ -117,6 +118,7 @@ export default function FloatingChatbot() {
         submitQuestion(question);
     };
 
+    // ... (SISA KODE UI/RETURN DI BAWAH INI SAMA PERSIS SEPERTI SEBELUMNYA) ...
     return (
         <>
             <style>{`
@@ -161,6 +163,7 @@ export default function FloatingChatbot() {
                     animation: slideDownFade 0.3s ease-in;
                 }
             `}</style>
+            
             {/* Dark Overlay */}
             {(isOpen || isClosing) && (
                 <div className={`fixed inset-0 bg-black bg-opacity-30 z-40 ${isClosing ? 'animate-fade-out' : 'animate-fade-in'}`}></div>
@@ -257,7 +260,6 @@ export default function FloatingChatbot() {
                                     </div>
                                 </div>
                                 
-                                {/* Additional messages */}
                                 {messages.slice(1).map((message) => (
                                     <div key={message.id} className={`flex mb-3 max-[425px]:mb-2 max-[375px]:mb-1.5 ${message.type === 'user' ? 'justify-end' : 'items-start'}`}>
                                         {message.type === 'bot' && (
@@ -274,17 +276,11 @@ export default function FloatingChatbot() {
                                                 ? 'bg-[#058743] text-white rounded-tr-md' 
                                                 : 'bg-[#E5E7EB] text-gray-700 rounded-tl-md'
                                         }`}>
-                                            {/* <p className="text-sm max-[768px]:text-xs max-[425px]:text-xs max-[375px]:text-xs max-[320px]:text-xs">{message.content}</p> */}
-                                            <div className="text-sm max-[768px]:text-xs max-[425px]:text-xs max-[375px]:text-xs max-[320px]:text-xs">
-                                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                                    {message.content}
-                                                </ReactMarkdown>
-                                            </div>
+                                            <p className="text-sm max-[768px]:text-xs max-[425px]:text-xs max-[375px]:text-xs max-[320px]:text-xs whitespace-pre-wrap">{message.content}</p>
                                         </div>
                                     </div>
                                 ))}
 
-                                {/* ↓↓↓ TAMBAHKAN BLOK KODE INI ↓↓↓ */}
                                 {loading && (
                                     <div className="flex items-start mb-4 max-[425px]:mb-3 max-[375px]:mb-2">
                                         <div className="w-8 h-8 max-[768px]:w-6 max-[768px]:h-6 max-[425px]:w-5 max-[425px]:h-5 max-[375px]:w-4 max-[375px]:h-4 rounded-full bg-[#058743] flex items-center justify-center mr-3 max-[425px]:mr-2 max-[375px]:mr-1.5 flex-shrink-0">
@@ -295,7 +291,6 @@ export default function FloatingChatbot() {
                                             />
                                         </div>
                                         <div className="bg-[#E5E7EB] rounded-2xl max-[425px]:rounded-xl max-[375px]:rounded-lg rounded-tl-md px-3 max-[425px]:px-2 max-[375px]:px-1.5 py-2 max-[425px]:py-1.5 max-[375px]:py-1">
-                                            {/* Animasi titik-titik */}
                                             <div className="flex space-x-1 p-1">
                                                 <div className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-pulse [animation-delay:-0.3s]"></div>
                                                 <div className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-pulse [animation-delay:-0.15s]"></div>
@@ -304,8 +299,7 @@ export default function FloatingChatbot() {
                                         </div>
                                     </div>
                                 )}
-                                {/* ↑↑↑ BATAS BLOK KODE TAMBAHAN ↑↑↑ */}
-                            </div> {/* <-- Div penutup area pesan */}
+                            </div>
 
                             {/* Sticky Input at Bottom */}
                             <div className="border-t border-gray-200 p-4 max-[768px]:p-3 max-[425px]:p-2">
@@ -322,7 +316,6 @@ export default function FloatingChatbot() {
                                         type="submit"
                                         className="bg-[#058743] text-white p-3 max-[768px]:p-2.5 max-[425px]:p-2 max-[375px]:p-1.5 rounded-xl max-[425px]:rounded-lg max-[375px]:rounded-md hover:bg-[#046635] transition-colors flex items-center justify-center"
                                     >
-                                        {/* ↓↓↓ GANTI BLOK SVG DENGAN BLOK KONDISIONAL INI ↓↓↓ */}
                                         {loading ? (
                                             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white max-[768px]:w-4 max-[768px]:h-4 max-[425px]:w-3.5 max-[425px]:h-3.5 max-[375px]:w-3 max-[375px]:h-3"></div>
                                         ) : (
@@ -330,7 +323,6 @@ export default function FloatingChatbot() {
                                                 <path d="M2 10l7-7 1.414 1.414L5.828 9H18v2H5.828l4.586 4.586L9 17l-7-7z" transform="rotate(180 10 10)"/>
                                             </svg>
                                         )}
-                                        {/* ↑↑↑ BATAS BLOK KODE PENGGANTI ↑↑↑ */}
                                     </button>
                                 </form>
                             </div>
@@ -339,13 +331,11 @@ export default function FloatingChatbot() {
                 </div>
             )}
 
-            {/* Floating Button - Hidden when chat is open */}
             {!isOpen && (
                 <button
                     onClick={() => setIsOpen(true)}
                     className="fixed bottom-6 right-6 max-[768px]:bottom-4 max-[768px]:right-4 max-[425px]:bottom-3 max-[425px]:right-3 max-[375px]:bottom-2 max-[375px]:right-2 max-[320px]:bottom-1.5 max-[320px]:right-1.5 w-20 h-20 max-[768px]:w-16 max-[768px]:h-16 max-[425px]:w-14 max-[425px]:h-14 max-[375px]:w-14 max-[375px]:h-14 max-[320px]:w-14 max-[320px]:h-14 bg-[#058743] hover:bg-[#046635] rounded-full shadow-lg flex items-center justify-center transition-all duration-200 z-50 group"
                 >
-                    {/* AI Bot Icon */}
                     <img 
                         src="/images/icons/ai_chatbot_logo.svg" 
                         alt="AI Chatbot" 
