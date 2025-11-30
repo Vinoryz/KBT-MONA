@@ -50,6 +50,6 @@ return [
 
     'senopati' => [
         'api_url' => env('SENOPATI_API_URL'),
-        'model' => env('SENOPATI_MODEL'),
+        'chat_model' => env('SENOPATI_CHAT_MODEL'),
     ],
 ];
