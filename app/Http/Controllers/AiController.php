@@ -13,11 +13,13 @@ class AiController extends Controller
     public function __construct()
     {
         $this->senopatiApiUrl = config('services.senopati.api_url');
-        $this->senopatiModel = config('services.senopati.model');
+        $this->senopatiModel = config('services.senopati.chat_model');
     }
 
     public function chat(Request $request)
     {
+        $this->senopatiApiUrl = $this->senopatiApiUrl . '/chat';
+
         set_time_limit(120); 
 
         $request->validate([
@@ -49,8 +51,7 @@ class AiController extends Controller
 
                 return response()->json([
                     'success' => true,
-                    'generated_response' => $content, 
-                    'raw_data' => $data
+                    'content' => $content
                 ]);
             } else {
                 return response()->json([

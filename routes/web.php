@@ -98,7 +98,7 @@ Route::get('/dashboard-api-test', function () {
 Route::post('/process-receipt', [OcrController::class, 'processReceipt']);
 Route::post('/process-receipt-ai', [DocumentAIController::class, 'processReceipt']);
 
-// Endpoint ini akan diakses via POST ke: /api/chat-ai
+// Routing Senopati AI Chat (Non-RAG)
 Route::post('/api/chat-ai', [AiController::class, 'chat']);
 
 // profile routes
