@@ -5,7 +5,6 @@ use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\OcrController;
 use App\Http\Controllers\DocumentAIController;
 use App\Http\Controllers\TransactionController;
-use App\Http\Controllers\RagEngineController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\AiController;
 use Illuminate\Foundation\Application;
@@ -123,9 +122,6 @@ Route::middleware('auth')->prefix('api')->group(function () {
     Route::post('/transactions', [TransactionController::class, 'store']);
     Route::put('/transactions/{id}', [TransactionController::class, 'update']);
     Route::delete('/transactions/{id}', [TransactionController::class, 'destroy']);
-
-    // RAG Engine route for financial advice
-    Route::post('/rag/advice', [RagEngineController::class, 'getAdvice']);
 });
 
 Route::middleware(['auth'])->group(function () {
