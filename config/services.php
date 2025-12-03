@@ -43,4 +43,14 @@ return [
         'api_url' => env('SENOPATI_API_URL'),
         'chat_model' => env('SENOPATI_CHAT_MODEL'),
     ],
+
+    'chroma' => [
+        'api_key' => env('CHROMA_API_KEY'),
+        'tenant' => env('CHROMA_TENANT'),
+        'database' => env('CHROMA_DATABASE'),
+    ],
+
+    'local_rag' => [
+        'api_url' => env('RAG_API_URL'),
+    ],
 ];

@@ -6,7 +6,7 @@ use App\Http\Controllers\OcrController;
 use App\Http\Controllers\DocumentAIController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\AiController;
+use App\Http\Controllers\ChatBotController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
@@ -98,7 +98,8 @@ Route::post('/process-receipt', [OcrController::class, 'processReceipt']);
 Route::post('/process-receipt-ai', [DocumentAIController::class, 'processReceipt']);
 
 // Routing Senopati AI Chat (Non-RAG)
-Route::post('/api/chat-ai', [AiController::class, 'chat']);
+Route::post('/api/chat-ai', [ChatBotController::class, 'chat']);
+// Routing Local Service RAG /api/rag-query
 
 // profile routes
 Route::middleware('auth')->group(function () {
