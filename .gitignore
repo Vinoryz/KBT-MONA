@@ -24,4 +24,3 @@ Homestead.yaml
 Thumbs.db
 python_services/venv/
 python_services/__pycache__/
-python_services/runserver.ps1
