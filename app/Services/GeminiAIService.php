@@ -105,4 +105,42 @@ PROMPT;
             throw new Exception('Gagal berkomunikasi dengan Gemini API: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Menghasilkan respon teks umum menggunakan Gemini API.
+     *
+     * @param string $prompt
+     * @return string
+     * @throws Exception
+     */
+    public function generateChatResponse(string $prompt): string
+    {
+        $data = [
+            'contents' => [
+                [
+                    'parts' => [
+                        ['text' => $prompt]
+                    ]
+                ]
+            ]
+        ];
+
+        try {
+            $response = $this->httpClient->post($this->apiUrl, [
+                'json' => $data,
+                'headers' => ['Content-Type' => 'application/json']
+            ]);
+
+            $result = json_decode($response->getBody(), true);
+
+            if (isset($result['candidates'][0]['content']['parts'][0]['text'])) {
+                return $result['candidates'][0]['content']['parts'][0]['text'];
+            }
+
+            throw new Exception('Struktur respons dari Gemini tidak valid.');
+
+        } catch (Exception $e) {
+            throw new Exception('Gagal berkomunikasi dengan Gemini API: ' . $e->getMessage());
+        }
+    }
 }

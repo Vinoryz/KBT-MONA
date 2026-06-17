@@ -26,3 +26,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/budgets/alerts', [BudgetController::class, 'getAlerts']);
     Route::get('/budgets/alerts/{categoryId}', [BudgetController::class, 'getCategoryAlert']);
 });
+
+// Chat AI route using Gemini
+Route::post('/chat-ai', [\App\Http\Controllers\ChatBotController::class, 'chat']);

@@ -4,24 +4,21 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use App\Services\GeminiAIService;
 
 class ChatBotController extends Controller
 {
-    protected $senopatiApiUrl;
-    protected $senopatiModel;
     protected $localRagApiUrl;
+    protected $geminiAI;
 
-    public function __construct()
+    public function __construct(GeminiAIService $geminiAI)
     {
-        $this->senopatiApiUrl = config('services.senopati.api_url');
-        $this->senopatiModel = config('services.senopati.chat_model');
         $this->localRagApiUrl = config('services.local_rag.api_url');
+        $this->geminiAI = $geminiAI;
     }
 
     public function chat(Request $request)
     {
-        $this->senopatiApiUrl = $this->senopatiApiUrl . '/chat';
-
         set_time_limit(120); 
 
         $request->validate([
@@ -64,47 +61,20 @@ class ChatBotController extends Controller
             ], 500);
         }
 
-        // KIRIM PROMPT KE SENOPATI DENGAN KONTEKS DARI RAG
+        // KIRIM PROMPT KE GEMINI DENGAN KONTEKS DARI RAG
 
         try {
-            $response = Http::withoutVerifying() 
-                ->timeout(60) 
-                ->withHeaders([
-                    'Content-Type' => 'application/json',
-                    'accept' => 'application/json',
-                ])->post($this->senopatiApiUrl, [
-                    'model' => $this->senopatiModel,
-                    'messages' => [
-                        [
-                            'role' => 'user',
-                            'content' => $full_prompt,
-                        ],
-                    ],
-                    'temperature' => 0.7,
-                    'stream' => false,
-                ]);
+            $content = $this->geminiAI->generateChatResponse($full_prompt);
 
-            if ($response->successful()) {
-                $data = $response->json();
-                
-                $content = $data['message']['content'] ?? 'No response content';
-
-                return response()->json([
-                    'success' => true,
-                    'content' => $content
-                ]);
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Gagal request ke Senopati: ' . $response->status(),
-                    'error' => $response->body()
-                ], 500);
-            }
+            return response()->json([
+                'success' => true,
+                'content' => $content
+            ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan server Senopati',
+                'message' => 'Terjadi kesalahan server Gemini AI',
                 'error' => $e->getMessage()
             ], 500);
         }

@@ -98,7 +98,6 @@ Route::post('/process-receipt', [OcrController::class, 'processReceipt']);
 Route::post('/process-receipt-ai', [DocumentAIController::class, 'processReceipt']);
 
 // Routing Senopati AI Chat (Non-RAG)
-Route::post('/api/chat-ai', [ChatBotController::class, 'chat']);
 // Routing Local Service RAG /api/rag-query
 
 // profile routes

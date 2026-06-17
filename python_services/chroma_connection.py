@@ -15,12 +15,10 @@ _collection: Collection | None = None
 def get_chroma_client() -> ClientAPI:
     global _client
     if _client is None:
-        _client = chromadb.CloudClient(
-            api_key=os.getenv("CHROMA_API_KEY"),
-            tenant=os.getenv("CHROMA_TENANT"),
-            database=os.getenv("CHROMA_DATABASE")
-        )
+        # Menyimpan database secara lokal di folder 'chroma_db'
+        _client = chromadb.PersistentClient(path="./chroma_db")
     return _client
+
 
 
 def get_chroma_collection(client: ClientAPI = Depends(get_chroma_client)) -> Collection:
