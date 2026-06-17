@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  # 1. Database MySQL Service
+  mysql:
+    image: mysql:8.0
+    container_name: mona-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_DATABASE:-mona}
+      MYSQL_USER: ${DB_USERNAME:-monauser}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-monapassword}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - mona-network
+
+  # 2. Laravel PHP-FPM Service
+  laravel:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mona-laravel
+    restart: unless-stopped
+    environment:
+      - DB_HOST=mysql
+      - RAG_API_URL=http://fastapi:8001/api/rag-query
+    volumes:
+      - app-volume:/var/www
+    depends_on:
+      - mysql
+    networks:
+      - mona-network
+
+  # 3. Nginx Web Server Service
+  nginx:
+    image: nginx:alpine
+    container_name: mona-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - app-volume:/var/www
+    depends_on:
+      - laravel
+    networks:
+      - mona-network
+
+  # 4. Python FastAPI RAG Service
+  fastapi:
+    build:
+      context: ./python_services
+      dockerfile: Dockerfile
+    container_name: mona-fastapi
+    restart: unless-stopped
+    environment:
+      - CHROMA_API_KEY=${CHROMA_API_KEY}
+      - CHROMA_TENANT=${CHROMA_TENANT}
+      - CHROMA_DATABASE=${CHROMA_DATABASE}
+    volumes:
+      - chroma-data:/app/chroma_db
+    networks:
+      - mona-network
+
+# Jaringan internal untuk komunikasi antar container
+networks:
+  mona-network:
+    driver: bridge
+
+# Volume persistent untuk database & file sharing
+volumes:
+  mysql-data:
+    driver: local
+  app-volume:
+    driver: local
+  chroma-data:
+    driver: local

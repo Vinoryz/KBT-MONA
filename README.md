@@ -101,3 +101,52 @@ uvicorn main:app --reload --port 8001
   ```
 * **Database Vektor Lokal**:
   Database pengetahuan finansial disimpan secara lokal di folder `python_services/chroma_db/`. Jika ingin mereset pengetahuan chatbot, Anda bisa menghapus folder `chroma_db` tersebut dan menjalankan `python ingest.py` kembali.
+
+---
+
+## 🐳 Deployment dengan Docker (Production & Azure VM)
+
+Untuk meluncurkan aplikasi ini secara publik menggunakan **Azure Virtual Machine (VM)**, kami merekomendasikan penggunaan Docker Compose agar proses pemasangan dan jalannya layanan jauh lebih aman dan konsisten.
+
+### Langkah-Langkah Deploy di Azure VM:
+1. Buat Virtual Machine berbasis **Ubuntu Server** di Azure Portal.
+2. Pastikan port inbound berikut terbuka di setelan firewall/Security Group Azure Anda:
+   - `80` (HTTP) & `443` (HTTPS).
+3. Hubungkan ke VM via SSH, lalu install Docker & Docker Compose:
+   ```bash
+   sudo apt update && sudo apt install -y docker.io docker-compose
+   ```
+4. Clone repositori ini ke dalam server Azure VM Anda:
+   ```bash
+   git clone https://github.com/Vinoryz/KBT-MONA.git
+   cd KBT-MONA
+   ```
+5. Buat file `.env` di server dan masukkan konfigurasi produksi:
+   ```env
+   APP_ENV=production
+   APP_DEBUG=false
+   APP_URL=http://<IP_PUBLIC_AZURE_VM_ANDA>
+   
+   DB_HOST=mysql
+   DB_DATABASE=mona
+   DB_USERNAME=monauser
+   DB_PASSWORD=monapassword
+   
+   GEMINI_API_KEY="API_KEY_GEMINI_ANDA"
+   RAG_API_URL="http://fastapi:8001/api/rag-query"
+   ```
+6. Jalankan seluruh container dalam mode background (daemon):
+   ```bash
+   docker-compose up -d --build
+   ```
+7. Jalankan migrasi database di dalam container:
+   ```bash
+   docker-compose exec laravel php artisan migrate --seed
+   ```
+8. Ingest data awal ChromaDB di dalam container Python:
+   ```bash
+   docker-compose exec fastapi python ingest.py
+   ```
+
+Aplikasi Anda kini sudah live dan dapat diakses secara publik melalui IP Publik Azure VM Anda!
+
